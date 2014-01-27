@@ -1,58 +1,69 @@
-PARSER_BEGIN(LexerTest) 
-    
-    class LexerTest {
-    	public static void main(String[] arg) 
-	throws ParseException
-	{
-	    LexerTest parser = new LexerTest(System.in);
+options {
+  STATIC = false; // Bug in 6.0 with STATIC=true
+}
 
-	    Start();
-        }
+PARSER_BEGIN(LexerTest)
+
+class LexerTest {
+	public static void main(String[] arg)
+        throws ParseException
+    {
+        LexerTest parser = new LexerTest(System.in);
+
+        parser.Start();
     }
+}
 
 PARSER_END(LexerTest)
 
 
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
 
 
-//  TOKEN : {<CHAR    >}
-//  TOKEN : {<ELSE    >}
-//  TOKEN : {<EXTERN  >}
-//  TOKEN : {<IF      >}
-//  TOKEN : {<INT     >}
-//  TOKEN : {<RETURN  >}
-//  TOKEN : {<VOID    >}
-//  TOKEN : {<WHILE   >}
+TOKEN : {<CHAR    : "char">}
+
+TOKEN : {<ELSE    : "else">}
+TOKEN : {<EXTERN  : "extern">}
+TOKEN : {<IF      : "if">}
+TOKEN : {<INT     : "int">}
+TOKEN : {<RETURN  : "return">}
+TOKEN : {<VOID    : "void">}
+TOKEN : {<WHILE   : "while">}
 
 TOKEN : {<NOTEQ  : "!=">}
 
- 
-//  TOKEN : {<NOTEQ  >}
-//  TOKEN : {<NOT    >}
-//  TOKEN : {<ANDAND >}
-//  TOKEN : {<OROR   >}
-//  TOKEN : {<LPAREN >}
-//  TOKEN : {<RPAREN >}
-//  TOKEN : {<MUL    >}
-//  TOKEN : {<PLUS   >}
-//  TOKEN : {<COMMA  >}
-//  TOKEN : {<MINUS  >}
-//  TOKEN : {<DIV    >}
-//  TOKEN : {<SEMI   >}
-//  TOKEN : {<LTEQ   >}
-//  TOKEN : {<LT     >}
-//  TOKEN : {<EQEQ   >}
-//  TOKEN : {<EQ     >}
-//  TOKEN : {<GTEQ   >}
-//  TOKEN : {<GT     >}
-//  TOKEN : {<LBRACK >}
-//  TOKEN : {<RBRACK >}
-//  TOKEN : {<LBRACE >}
-//  TOKEN : {<RBRACE >}
 
-//  TOKEN : {<STRING >}
+TOKEN : {<NOT    : "!">}
+TOKEN : {<ANDAND : "&&">}
+TOKEN : {<OROR   : "||">}
+TOKEN : {<LPAREN : "(">}
+TOKEN : {<RPAREN : ")">}
+TOKEN : {<MUL    : "*">}
+TOKEN : {<PLUS   : "+">}
+TOKEN : {<COMMA  : ",">}
+TOKEN : {<MINUS  : "-">}
+TOKEN : {<DIV    : "/">}
+TOKEN : {<SEMI   : ";">}
+TOKEN : {<LTEQ   : "<=">}
+TOKEN : {<LT     : "<">}
+TOKEN : {<EQEQ   : "==">}
+TOKEN : {<EQ     : "=">}
+TOKEN : {<GTEQ   : ">=">}
+TOKEN : {<GT     : ">">}
+TOKEN : {<LBRACK : "[">}
+TOKEN : {<RBRACK : "]">}
+TOKEN : {<LBRACE : "{">}
+TOKEN : {<RBRACE : "}">}
 
-//  TOKEN : {<INTEGER_CONSTANT >}
+// TOKEN : {<STRING >}
+
+TOKEN : {<INTEGER_CONSTANT : (["0"-"9"])+ >}
 
 //  TOKEN : {<IDENT >}
 
@@ -60,16 +71,24 @@ TOKEN : {<NOTEQ  : "!=">}
 
 
 
-void Start() : 
+void Start() :
 {
   Token t;
 }
 {
-  ((
-   t = <NOTEQ>  
-  )
-    {
-	System.out.println(LexerTestConstants.tokenImage[t.kind] + ":"+t.image);
-    }
+  (
+   (t = <CHAR>   |
+    t = <ELSE>   |
+    t = <EXTERN> |
+    t = <INT>    |
+    t = <RETURN> |
+    t = <VOID>   |
+    t = <WHILE>  |
+    t = <NOTEQ>) {
+       System.out.println(LexerTestConstants.tokenImage[t.kind] + ":"+t.image);
+   } |
+   (t = <INTEGER_CONSTANT>) {
+       System.out.println(LexerTestConstants.tokenImage[t.kind] + ":"+t.image);
+   }
   )*
 }

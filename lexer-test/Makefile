@@ -1,9 +1,7 @@
 # JFLAGS=-g
-JFLAGS=
-
-all: 
-	cd	javacc lexer-test.jj
-	javac ${JFLAGS} LexerTest.java
+all:
+	javacc lexer-test.jj
+	javac ${JFLAGS} *.java
 
 clean:
 	rm *.class; mv generated/*.java .waste

@@ -1,10 +1,14 @@
-PARSER_BEGIN(UcParse) 
-  
+options {
+  STATIC = false; // Bug in 6.0 with STATIC=true
+}
+
+PARSER_BEGIN(UcParse)
+
 import java.util.*;
-import java.io.*;  
+import java.io.*;
 
 class UcParse {
-  public static void main(String[] arg) 
+  public static void main(String[] arg)
   throws ParseException, IOException {
     if (arg.length != 1) {
         System.out.println("Usage: UcParse <input file name>");
@@ -27,7 +31,7 @@ TOKEN : {<NOTEQ  : "!=">}
 // More tokens here!
 
 
-Node Start() : 
+Node Start() :
 {
 }
 {
@@ -45,21 +49,21 @@ Node TopLevelDeclaration() :
     formals = FunctionParameters()
     (
       body = CompoundStatement()
-    | 
+    |
       <SEMI>
-    )	
-  | 
+    )
+  |
       { }
   )
 }
-    
+
 //List<Node> FunctionParameters () :
 Node FunctionParameters () :
-{ 
+{
 }
-{ <LPAREN> 
+{ <LPAREN>
   (
-    <VOID> 
+    <VOID>
   |
     f = Declaration()
     ( <COMMA>
@@ -79,10 +83,10 @@ Node Declaration () :
 
 // List<Node> AbstractFunctionParameters () :
 Node AbstractFunctionParameters () :
-{ 
+{
 }
 {
-  l = FunctionParameters () 
+  l = FunctionParameters ()
 }
 
 Node BaseType () :
@@ -96,7 +100,7 @@ Node BaseType () :
 }
 
 Node Declarator () :
-{ 
+{
 }
 {
   id = Identifier()
@@ -129,7 +133,7 @@ Node Statement() :
   s = SimpleCompoundStatement()
 |
   s = Expression()
-  <SEMI> 
+  <SEMI>
 |
   <SEMI>
 |
@@ -141,7 +145,7 @@ Node Statement() :
   ( LOOKAHEAD(1)
     <ELSE>
     s2 = Statement() )?
-| 
+|
   t = <WHILE>
   <LPAREN>
   c = Expression()
@@ -195,9 +199,9 @@ Node Expression () :
 Node Unary() :
 {
 }
-{ 
+{
   <MINUS>
-| 
+|
   <NOT>
 }
 
@@ -206,27 +210,27 @@ Node Binary () :
 }
 {
   <MUL>
-| 
+|
   <DIV>
-| 
+|
   <PLUS>
-| 
+|
   <MINUS>
-| 
+|
   <LT>
-| 
+|
   <GT>
-| 
+|
   <LTEQ>
-| 
+|
   <GTEQ>
-| 
+|
   <EQEQ>
-| 
+|
   <NOTEQ>
-| 
+|
   <ANDAND>
-| 
+|
   <ANDOR>
 }
 
@@ -245,4 +249,3 @@ Node IntegerLiteral() :
 {
  t = <INTEGER_LITERAL>
 }
-
