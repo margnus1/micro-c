@@ -4,37 +4,37 @@ class Binary implements RtlExp {
     private int left;
 
     public Binary (RtlBinop _op, int _right, int _left){
-	op =_op;
-	right =_right;
-	left =_left;
+        op =_op;
+        right =_right;
+        left =_left;
     }
 
     public RtlBinop getOp (){
-	return op;
+        return op;
     }
 
     public void setOp (RtlBinop _op){
-	op =_op;
+        op =_op;
     }
 
     public int getRight (){
-	return right;
+        return right;
     }
 
     public void setRight (int _right){
-	right =_right;
+        right =_right;
     }
 
     public int getLeft (){
-	return left;
+        return left;
     }
 
     public void setLeft (int _left){
-	left =_left;
+        left =_left;
     }
 
     public String toString(){
-	return "binary" + "(" + op + " " + Rtl.regToString(right)
-	    + " " + Rtl.regToString(left) + ")";
+        return "binary" + "(" + op + " " + Rtl.regToString(right)
+            + " " + Rtl.regToString(left) + ")";
     };
 }

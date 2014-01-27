@@ -4,37 +4,37 @@ class CJump implements RtlInsn {
     private String label;
 
     public CJump (boolean _flag, int _temp, String _label){
-	flag =_flag;
-	temp =_temp;
-	label =_label;
+        flag =_flag;
+        temp =_temp;
+        label =_label;
     }
 
     public boolean getFlag (){
-	return flag;
+        return flag;
     }
 
     public void setFlag (boolean _flag){
-	flag =_flag;
+        flag =_flag;
     }
 
     public int getTemp (){
-	return temp;
+        return temp;
     }
 
     public void setTemp (int _temp){
-	temp =_temp;
+        temp =_temp;
     }
 
     public String getLabel (){
-	return label;
+        return label;
     }
 
     public void setLabel (String _label){
-	label =_label;
+        label =_label;
     }
 
     public String toString(){
-	return "cjump" + "(" + flag + " " + Rtl.regToString(temp)
-	    + " " + label + ")";
+        return "cjump" + "(" + flag + " " + Rtl.regToString(temp)
+            + " " + label + ")";
     };
 }
