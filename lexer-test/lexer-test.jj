@@ -1,0 +1,75 @@
+PARSER_BEGIN(LexerTest) 
+    
+    class LexerTest {
+    	public static void main(String[] arg) 
+	throws ParseException
+	{
+	    LexerTest parser = new LexerTest(System.in);
+
+	    Start();
+        }
+    }
+
+PARSER_END(LexerTest)
+
+
+
+
+//  TOKEN : {<CHAR    >}
+//  TOKEN : {<ELSE    >}
+//  TOKEN : {<EXTERN  >}
+//  TOKEN : {<IF      >}
+//  TOKEN : {<INT     >}
+//  TOKEN : {<RETURN  >}
+//  TOKEN : {<VOID    >}
+//  TOKEN : {<WHILE   >}
+
+TOKEN : {<NOTEQ  : "!=">}
+
+ 
+//  TOKEN : {<NOTEQ  >}
+//  TOKEN : {<NOT    >}
+//  TOKEN : {<ANDAND >}
+//  TOKEN : {<OROR   >}
+//  TOKEN : {<LPAREN >}
+//  TOKEN : {<RPAREN >}
+//  TOKEN : {<MUL    >}
+//  TOKEN : {<PLUS   >}
+//  TOKEN : {<COMMA  >}
+//  TOKEN : {<MINUS  >}
+//  TOKEN : {<DIV    >}
+//  TOKEN : {<SEMI   >}
+//  TOKEN : {<LTEQ   >}
+//  TOKEN : {<LT     >}
+//  TOKEN : {<EQEQ   >}
+//  TOKEN : {<EQ     >}
+//  TOKEN : {<GTEQ   >}
+//  TOKEN : {<GT     >}
+//  TOKEN : {<LBRACK >}
+//  TOKEN : {<RBRACK >}
+//  TOKEN : {<LBRACE >}
+//  TOKEN : {<RBRACE >}
+
+//  TOKEN : {<STRING >}
+
+//  TOKEN : {<INTEGER_CONSTANT >}
+
+//  TOKEN : {<IDENT >}
+
+
+
+
+
+void Start() : 
+{
+  Token t;
+}
+{
+  ((
+   t = <NOTEQ>  
+  )
+    {
+	System.out.println(LexerTestConstants.tokenImage[t.kind] + ":"+t.image);
+    }
+  )*
+}

@@ -1,0 +1,248 @@
+PARSER_BEGIN(UcParse) 
+  
+import java.util.*;
+import java.io.*;  
+
+class UcParse {
+  public static void main(String[] arg) 
+  throws ParseException, IOException {
+    if (arg.length != 1) {
+        System.out.println("Usage: UcParse <input file name>");
+        System.exit(0);
+    }
+    InputStream is = new FileInputStream(arg[0]);
+
+    UcParse parser = new UcParse(is);
+    Node tree = Start();
+
+    tree.print("");
+
+  }
+}
+
+PARSER_END(UcParse)
+
+
+TOKEN : {<NOTEQ  : "!=">}
+// More tokens here!
+
+
+Node Start() : 
+{
+}
+{
+    ( td = TopLevelDeclaration()
+    )*
+}
+
+Node TopLevelDeclaration() :
+{
+}
+{
+  bt = BaseType()
+  dr = Declarator()
+  (
+    formals = FunctionParameters()
+    (
+      body = CompoundStatement()
+    | 
+      <SEMI>
+    )	
+  | 
+      { }
+  )
+}
+    
+//List<Node> FunctionParameters () :
+Node FunctionParameters () :
+{ 
+}
+{ <LPAREN> 
+  (
+    <VOID> 
+  |
+    f = Declaration()
+    ( <COMMA>
+      f = Declaration()
+    )*
+  )
+  <RPAREN>
+}
+
+Node Declaration () :
+{
+}
+{
+  bt = BaseType()
+  dr = Declarator()
+}
+
+// List<Node> AbstractFunctionParameters () :
+Node AbstractFunctionParameters () :
+{ 
+}
+{
+  l = FunctionParameters () 
+}
+
+Node BaseType () :
+{}
+{
+  <CHAR>
+|
+  <INT>
+|
+  <VOID>
+}
+
+Node Declarator () :
+{ 
+}
+{
+  id = Identifier()
+  ( <LBRACK>
+    ( r = IntegerLiteral()
+    ) ?
+    <RBRACK>
+  |
+  { }
+  )
+}
+
+Node CompoundStatement () :
+{
+}
+{
+  <LBRACE>
+  ( d = Declaration()
+    <SEMI>
+  )*
+  ( s = Statement()
+  )*
+  <RBRACE>
+}
+
+Node Statement() :
+{
+}
+{
+  s = SimpleCompoundStatement()
+|
+  s = Expression()
+  <SEMI> 
+|
+  <SEMI>
+|
+  t = <IF>
+  <LPAREN>
+  c = Expression()
+  <RPAREN>
+  s1 = Statement()
+  ( LOOKAHEAD(1)
+    <ELSE>
+    s2 = Statement() )?
+| 
+  t = <WHILE>
+  <LPAREN>
+  c = Expression()
+  <RPAREN>
+  s1 = Statement()
+|
+  <RETURN>
+  ( c = Expression() )?
+  <SEMI>
+}
+
+Node SimpleCompoundStatement() :
+{
+}
+{
+  left = <LBRACE>
+  ( s = Statement()
+  )*
+  right = <RBRACE>
+}
+
+
+
+Node Expression () :
+{
+}
+{ exp = IntegerLiteral()
+| <LPAREN>
+  exp = Expression()
+  <RPAREN>
+| id = Identifier()
+  ( <LBRACK>
+    exp = Expression()
+    <RBRACK>
+  | <LPAREN>
+    (
+      exp = Expression()
+      ( <COMMA>
+        exp = Expression()
+      )*
+    | { } )
+    <RPAREN>
+  | {  }
+  )
+|
+  Expression() Binop() Expression()
+|
+  Unop() Expression()
+}
+
+Node Unary() :
+{
+}
+{ 
+  <MINUS>
+| 
+  <NOT>
+}
+
+Node Binary () :
+{
+}
+{
+  <MUL>
+| 
+  <DIV>
+| 
+  <PLUS>
+| 
+  <MINUS>
+| 
+  <LT>
+| 
+  <GT>
+| 
+  <LTEQ>
+| 
+  <GTEQ>
+| 
+  <EQEQ>
+| 
+  <NOTEQ>
+| 
+  <ANDAND>
+| 
+  <ANDOR>
+}
+
+
+Node Identifier() :
+{
+}
+{
+  t = <IDENT>
+}
+
+
+Node IntegerLiteral() :
+{
+}
+{
+ t = <INTEGER_LITERAL>
+}
+
