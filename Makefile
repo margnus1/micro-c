@@ -3,9 +3,7 @@ JFLAGS=-sourcepath parser:generated:absyn:rtl:mips -d build
 
 
 all: 
-	cd generated
-	javacc ../parser/parser.jj
-	cd..
+	cd generated; javacc ../parser/parser.jj
 	mkdir -p build 
 	javac ${JFLAGS} generated/UcParse.java
 clean:
