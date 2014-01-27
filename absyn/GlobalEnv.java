@@ -1,3 +1,4 @@
+package absyn;
 import java.util.*;
 
 class GlobalEnv implements Env {

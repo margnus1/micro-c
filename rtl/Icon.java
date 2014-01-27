@@ -1,3 +1,5 @@
+package rtl;
+
 class Icon implements RtlExp {
     private int val;
 

@@ -1,3 +1,5 @@
+package rtl;
+
 class LabDef implements RtlInsn {
     private String label;
 

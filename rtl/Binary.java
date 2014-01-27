@@ -1,3 +1,5 @@
+package rtl;
+
 class Binary implements RtlExp {
     private RtlBinop op;
     private int right;

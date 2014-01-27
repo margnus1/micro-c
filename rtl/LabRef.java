@@ -1,3 +1,5 @@
+package rtl;
+
 class LabRef implements RtlExp {
     private String label;
 

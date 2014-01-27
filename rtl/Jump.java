@@ -1,3 +1,5 @@
+package rtl;
+
 class Jump implements RtlInsn {
     private String label;
 

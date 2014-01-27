@@ -1,3 +1,5 @@
+package rtl;
+
 class Store implements RtlInsn {
     private RtlType type;
     private int addr;

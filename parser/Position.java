@@ -1,3 +1,4 @@
+package parser;
 public class Position {
     private int beginLine, beginColumn, endLine, endColumn;
     

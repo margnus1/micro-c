@@ -1,3 +1,4 @@
+package rtl;
 import java.util.*;
 
 class Proc implements RtlDec {

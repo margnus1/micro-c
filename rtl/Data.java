@@ -1,3 +1,5 @@
+package rtl;
+
 class Data implements RtlDec {
     private String label;
     private int size;

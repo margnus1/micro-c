@@ -1,3 +1,5 @@
+package rtl;
+
 class CJump implements RtlInsn {
     private boolean flag;
     private int temp;
