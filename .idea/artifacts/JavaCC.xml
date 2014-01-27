@@ -1,0 +1,6 @@
+<component name="ArtifactManager">
+  <artifact name="JavaCC">
+    <output-path>$PROJECT_DIR$/out/artifacts/JavaCC</output-path>
+    <root id="root" />
+  </artifact>
+</component>
