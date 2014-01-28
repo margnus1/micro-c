@@ -17,13 +17,10 @@ class LexerTest {
 PARSER_END(LexerTest)
 
 
-SKIP :
-{
-  " "
-| "\t"
-| "\n"
-| "\r"
-}
+SKIP : { " " | "\t" | "\n" | "\r" }
+
+SPECIAL_TOKEN : {
+    <SINGLE_LINE_COMMENT: "//"(~["\n","\r"])* ("\n"|"\r"|"\r\n")? > }
 
 
 TOKEN : {<CHAR    : "char">}
@@ -63,7 +60,7 @@ TOKEN : {<RBRACE : "}">}
 
 // TOKEN : {<STRING >}
 
-TOKEN : {<INTEGER_CONSTANT : (["0"-"9"])+ >}
+TOKEN : {<INTEGER_CONSTANT : (["0"-"9"])+>}
 
 //  TOKEN : {<IDENT >}
 
@@ -84,11 +81,10 @@ void Start() :
     t = <RETURN> |
     t = <VOID>   |
     t = <WHILE>  |
-    t = <NOTEQ>) {
-       System.out.println(LexerTestConstants.tokenImage[t.kind] + ":"+t.image);
-   } |
-   (t = <INTEGER_CONSTANT>) {
-       System.out.println(LexerTestConstants.tokenImage[t.kind] + ":"+t.image);
+    t = <NOTEQ>  |
+    t = <INTEGER_CONSTANT>) {
+       System.out.println(LexerTestConstants.tokenImage[t.kind] + " : \"" + t.image + "\"" +
+                          (t.getValue() != null ? " = " + t.getValue().toString() : ""));
    }
-  )*
+  )* <EOF>
 }
