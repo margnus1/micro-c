@@ -1,0 +1,26 @@
+<project default="lexer-test">
+  <property name="build" location="out"/>
+
+  <!-- JavaCC -->
+  <property name="javacc-dest" location="javacc-5.0"/>
+  <available file="${javacc-dest}" property="javacc.present"/>
+  <target name="javacc-download"
+          description="Because ant is too stupid to look for JavaCC in the path,
+                       we make it download and extract it automatically"
+          unless="javacc.present">
+    <get src="https://java.net/downloads/javacc/javacc-5.0.zip"
+         dest="javacc-5.0.zip"
+         skipexisting="true"/>
+    <unzip src="javacc-5.0.zip" dest="."/>
+  </target>
+
+  <!-- Lexer Test -->
+  <target name="lexer-test"
+          description="compile the standalone lexer"
+          depends="javacc-download">
+    <javacc target="lexer-test/lexer-test.jj"
+            outputdirectory="lexer-test/"
+            javacchome="${javacc-dest}/bin/lib"/>
+    <javac srcdir="lexer-test/" destdir="lexer-test/"/>
+  </target>
+</project>
