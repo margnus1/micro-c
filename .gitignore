@@ -6,6 +6,8 @@
 *.ear
 
 .idea/workspace.xml
+.idea/uiDesigner.xml
 out
 javacc-5.0.zip
 javacc-5.0
+build

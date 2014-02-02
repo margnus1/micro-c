@@ -2,6 +2,7 @@
 
 options {
   STATIC = false; // Bug in 6.0 with STATIC=true
+        DEBUG_TOKEN_MANAGER = false;
 }
 
 PARSER_BEGIN(LexerTest)
@@ -57,6 +58,7 @@ TOKEN : {<WHILE   : "while">}
 
 // special symbols
 
+
 TOKEN : {<NOTEQ  : "!=">}
 TOKEN : {<NOT    : "!">}
 TOKEN : {<ANDAND : "&&">}
@@ -87,10 +89,12 @@ TOKEN : {<RBRACE : "}">}
 // Decimal integer constants
 TOKEN : {<INTEGER_CONSTANT : ["1"-"9"] (["0"-"9"])*>}
 
+
 //char literals
-TOKEN:{
-        < a: "a">
-        }
+TOKEN: {<CHARACTER_LITERAL:
+        "\'" (~["\'","\\","\n","\r"] |
+                "\\" (["n","t","b","r","f","\\","\'","\""] |
+                ["0"-"7"] (["0"-"7"])? | ["0"-"3"] ["0"-"7"] ["0"-"7"])) "\'">}
 
 
 TOKEN : {
@@ -123,7 +127,14 @@ void Start() :
     t = <VOID>   |
     t = <WHILE>  |
     t = <NOTEQ>  |
+    t = <SEMI>   |
+    t = <LPAREN> |
+    t = <RPAREN> |
+    t = <LBRACE> |
+    t = <RBRACE> |
+    t = <EQ> |
     t = <INTEGER_CONSTANT> |
+    t = <CHARACTER_LITERAL> |
     t = <IDENTIFIER>) {
        System.out.println(LexerTestConstants.tokenImage[t.kind] + " : \"" + t.image + "\"" +
                           (t.getValue() != null ? " = " + t.getValue().toString() : ""));

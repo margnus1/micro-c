@@ -23,4 +23,22 @@
             javacchome="${javacc-dest}/bin/lib"/>
     <javac srcdir="lexer-test/" destdir="lexer-test/"/>
   </target>
+
+    <target name="compile-l">
+        <mkdir dir="build/lexer-test"/>
+        <javac srcdir="lexer-test"
+               destdir = "build/lexer-test"/>
+
+    </target>
+
+    <target name="run-l">
+        <java classname="LexerTest">
+            <arg value="testcases/quiet/lexer/l03.c"/>
+            <classpath>
+                <pathelement path="build/lexer-test"/>
+            </classpath>
+        </java>
+    </target>
+
+
 </project>
