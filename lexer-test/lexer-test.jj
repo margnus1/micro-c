@@ -1,18 +1,34 @@
+
+
 options {
   STATIC = false; // Bug in 6.0 with STATIC=true
 }
 
 PARSER_BEGIN(LexerTest)
 
-class LexerTest {
-	public static void main(String[] arg)
-        throws ParseException
-    {
-        LexerTest parser = new LexerTest(System.in);
+
+public class LexerTest {
+    public static void main(String[] args)
+            throws ParseException{
+        LexerTest parser = null;
+        if(args.length == 0){
+            System.out.println("Reading from standard input");
+            parser = new LexerTest(System.in);
+        }else if(args.length == 1){
+            try{
+                System.out.println("JavaCC Parser:  Reading from file " + args[0] + " . . .");
+                parser = new LexerTest(new java.io.FileInputStream(args[0]));
+
+            }catch(java.io.FileNotFoundException e){
+                return;
+            }
+        }
+
 
         parser.Start();
     }
 }
+
 
 PARSER_END(LexerTest)
 
@@ -20,9 +36,14 @@ PARSER_END(LexerTest)
 SKIP : { " " | "\t" | "\n" | "\r" }
 
 SPECIAL_TOKEN : {
-    <SINGLE_LINE_COMMENT: "//"(~["\n","\r"])* ("\n"|"\r"|"\r\n")? > }
+    <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")? > }
 
 
+//multiline comments
+
+
+
+// keywords   why extern?
 TOKEN : {<CHAR    : "char">}
 
 TOKEN : {<ELSE    : "else">}
@@ -33,9 +54,10 @@ TOKEN : {<RETURN  : "return">}
 TOKEN : {<VOID    : "void">}
 TOKEN : {<WHILE   : "while">}
 
+
+// special symbols
+
 TOKEN : {<NOTEQ  : "!=">}
-
-
 TOKEN : {<NOT    : "!">}
 TOKEN : {<ANDAND : "&&">}
 TOKEN : {<OROR   : "||">}
@@ -60,9 +82,29 @@ TOKEN : {<RBRACE : "}">}
 
 // TOKEN : {<STRING >}
 
-TOKEN : {<INTEGER_CONSTANT : (["0"-"9"])+>}
+
+
+// Decimal integer constants
+TOKEN : {<INTEGER_CONSTANT : ["1"-"9"] (["0"-"9"])*>}
+
+//char literals
+TOKEN:{
+        < a: "a">
+        }
+
+
+TOKEN : {
+<IDENTIFIER: <LETTER> (<LETTER> | <DIGIT>)*>
+        |  <#LETTER: ["$","A"-"Z","_","a"-"z"]>
+        |  <#DIGIT: ["0"-"9"]>
+        }
+
+
 
 //  TOKEN : {<IDENT >}
+
+
+
 
 
 
@@ -82,7 +124,8 @@ void Start() :
     t = <VOID>   |
     t = <WHILE>  |
     t = <NOTEQ>  |
-    t = <INTEGER_CONSTANT>) {
+    t = <INTEGER_CONSTANT> |
+    t = <IDENTIFIER>) {
        System.out.println(LexerTestConstants.tokenImage[t.kind] + " : \"" + t.image + "\"" +
                           (t.getValue() != null ? " = " + t.getValue().toString() : ""));
    }
