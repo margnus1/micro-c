@@ -102,10 +102,10 @@ TOKEN: {<CHARACTER_LITERAL:
         "\'" >}
 
 TOKEN : {
-<IDENTIFIER: <LETTER> (<LETTER> | <DIGIT>)*>
-        |  <#LETTER: ["$","A"-"Z","_","a"-"z"]>
-        |  <#DIGIT: ["0"-"9"]>
-        }
+    <IDENTIFIER: <LETTER> (<LETTER> | <DIGIT>)*>
+  | <#LETTER: ["$","A"-"Z","_","a"-"z"]>
+  | <#DIGIT: ["0"-"9"]>
+}
 
 JAVACODE
 void Start()
