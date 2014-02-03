@@ -32,8 +32,9 @@
     </target>
 
     <target name="run-l">
+        <property name="testfile" location="testcases/quiet/lexer/l05.c"/>
         <java classname="LexerTest">
-            <arg value="testcases/quiet/lexer/l06.c"/>
+            <arg value="${testfile}"/>
             <classpath>
                 <pathelement path="build/lexer-test"/>
             </classpath>
