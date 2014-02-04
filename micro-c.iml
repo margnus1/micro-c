@@ -5,7 +5,6 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/generated" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/lexer-test" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/javacc-5.0" />
     </content>
     <orderEntry type="inheritedJdk" />

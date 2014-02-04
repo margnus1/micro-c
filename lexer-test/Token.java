@@ -118,6 +118,8 @@ public class Token implements java.io.Serializable {
     {
     case LexerTestConstants.INTEGER_CONSTANT:
         return new IntegerConstantToken(image);
+        case LexerTestConstants.CHARACTER_LITERAL:
+            return new CharacterLiteralToken(image);
     default: return new Token(ofKind, image);
     }
   }
