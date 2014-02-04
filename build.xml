@@ -1,4 +1,4 @@
-<project default="lexer-test">
+<project default="compile-l">
   <property name="build" location="out"/>
 
   <!-- JavaCC -->
@@ -21,17 +21,18 @@
     <javacc target="lexer-test/lexer-test.jj"
             outputdirectory="lexer-test/"
             javacchome="${javacc-dest}/bin/lib"/>
-    <javac srcdir="lexer-test/" destdir="lexer-test/"/>
   </target>
 
-    <target name="compile-l">
-        <mkdir dir="build/lexer-test"/>
-        <javac srcdir="lexer-test"
-               destdir = "build/lexer-test"/>
+    <target name="compile-l"
+            depends="lexer-test">
+      <mkdir dir="build/lexer-test"/>
+      <javac srcdir ="lexer-test"
+             destdir="build/lexer-test"/>
 
     </target>
 
-    <target name="run-l">
+    <target name="run-l"
+            depends="compile-l">
         <property name="testfile" location="testcases/quiet/lexer/l05.c"/>
         <java classname="LexerTest">
             <arg value="${testfile}"/>
@@ -41,5 +42,10 @@
         </java>
     </target>
 
+    <target name="clean">
+      <delete includeemptydirs="true">
+        <fileset dir="build" includes="**/*"/>
+      </delete>
+    </target>
 
 </project>
