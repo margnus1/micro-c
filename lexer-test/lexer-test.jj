@@ -6,7 +6,7 @@ options {
 PARSER_BEGIN(LexerTest)
 public class LexerTest {
     public static void main(String[] args)
-            throws ParseException{
+         {
         LexerTest parser = null;
         if(args.length == 0){
             System.out.println("Reading from standard input");
@@ -21,7 +21,14 @@ public class LexerTest {
             }
         }
 
-        parser.Start();
+        try{
+            parser.Start();
+        }catch (ParseException p){
+            System.out.println(p);
+        }catch (TokenMgrError t){
+            System.out.println(t);
+        }
+
     }
 }
 PARSER_END(LexerTest)
