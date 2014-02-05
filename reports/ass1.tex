@@ -1,10 +1,29 @@
 \documentclass[a4paper,11pt]{article}
-\title{Assignment 1}
-\author{Doris Yang \and Magnus L{\aa}ng} % replace by your name(s)
+\title{Assignment 1: Lexical Analyzer}
+\author{Xiao Yang \and Magnus L{\aa}ng} % replace by your name(s)
 \date{\today}
 \begin{document}
 \maketitle
-\section{Lexing}
-Text here.
+\section{General Description}
+	We use JavaCC Framework to implement the lexical analyzer for uC language.
+	All tokens need to be detected are specified in the \textit{lexer-test.jj} file.
+	
+	
+	
+\section{Technical Issues}
+\subsection{Comments}
+\begin{itemize}
+	\item Singel Line Comment \\
+	The token is specified to start with \textbf{\textbackslash \textbackslash} and end at end-of-line (\textit{\textbackslash n}, \textit{\textbackslash r} or \textit{\textbackslash r\textbackslash n})
+	\item Multiline Comment \\
+	We use keyword \emph{MORE} to specify the rule when we see \textit{\textbackslash *} : change from state \emph{DEFAULT} to state \emph{IN\_MULTI\_LINE\_COMMENT}. Within \emph{IN\_MULTI\_LINE\_COMMENT}, any character will be matched until \textit{* \textbackslash} is seen. So the whole comment will be recognized as one token and the lexical state will be changed back to \emph{DEFAULT} afterwards.
+	
+\end{itemize}
+\subsection{End-of-file}
+	End-of-file is simply a token denoted by $ \langle $ EOF $ \rangle $  in JavaCC. And when we recognize tokens, every token should be recognized before $ \langle $ EOF $ \rangle $. (For e.g., multiline comments without \textit{* \textbackslash} before $ \langle $ EOF $ \rangle $ is illegal.)
+\subsection{Source Code Position}
+	Source code position information is provided with JavaCC in \textit{Token.java} file. We simply attach these information to our output.
+
+
 
 \end{document}
