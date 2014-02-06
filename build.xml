@@ -1,34 +1,37 @@
 <project default="compile-l">
-  <property name="build" location="out"/>
+    <property name="build" location="out"/>
 
-  <!-- JavaCC -->
-  <property name="javacc-dest" location="javacc-5.0"/>
-  <available file="${javacc-dest}" property="javacc.present"/>
-  <target name="javacc-download"
-          description="Because ant is too stupid to look for JavaCC in the path,
+    <!-- JavaCC -->
+    <property name="javacc-dest" location="javacc-5.0"/>
+    <available file="${javacc-dest}" property="javacc.present"/>
+    <target name="javacc-download"
+            description="Because ant is too stupid to look for JavaCC in the path,
                        we make it download and extract it automatically"
-          unless="javacc.present">
-    <get src="https://java.net/downloads/javacc/javacc-5.0.zip"
-         dest="javacc-5.0.zip"
-         skipexisting="true"/>
-    <unzip src="javacc-5.0.zip" dest="."/>
-  </target>
+            unless="javacc.present">
+        <get src="https://java.net/downloads/javacc/javacc-5.0.zip"
+             dest="javacc-5.0.zip"
+             skipexisting="true"/>
+        <unzip src="javacc-5.0.zip" dest="."/>
+    </target>
 
-  <!-- Lexer Test -->
-  <target name="lexer-test"
-          description="compile the standalone lexer"
-          depends="javacc-download">
-    <javacc target="lexer-test/lexer-test.jj"
-            outputdirectory="lexer-test/"
-            javacchome="${javacc-dest}/bin/lib"/>
-  </target>
+    <!-- Lexer Test -->
+    <target name="lexer-test"
+            description="compile the standalone lexer"
+            depends="javacc-download">
+        <mkdir dir="generated/lexer-test"/>
+        <copy todir="generated/lexer-test">
+            <fileset dir="lexer-test" includes="**/*"/>
+        </copy>
+        <javacc target="lexer-test/lexer-test.jj"
+                outputdirectory="generated/lexer-test/"
+                javacchome="${javacc-dest}/bin/lib"/>
+    </target>
 
     <target name="compile-l"
             depends="lexer-test">
-      <mkdir dir="build/lexer-test"/>
-      <javac srcdir ="lexer-test"
-             destdir="build/lexer-test"/>
-
+        <mkdir dir="build/lexer-test"/>
+        <javac srcdir ="generated/lexer-test"
+               destdir="build/lexer-test"/>
     </target>
 
     <target name="run-l"
@@ -43,9 +46,10 @@
     </target>
 
     <target name="clean">
-      <delete includeemptydirs="true">
-        <fileset dir="build" includes="**/*"/>
-      </delete>
+        <delete includeemptydirs="true">
+            <fileset dir="generated" includes="**/*"/>
+            <fileset dir="build" includes="**/*"/>
+        </delete>
     </target>
 
 </project>
