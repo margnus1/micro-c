@@ -20,7 +20,7 @@
             depends="javacc-download">
         <mkdir dir="generated/lexer-test"/>
         <copy todir="generated/lexer-test">
-            <fileset dir="lexer-test" includes="**/*"/>
+            <fileset dir="lexer-test" includes="**/*.java"/>
         </copy>
         <javacc target="lexer-test/lexer-test.jj"
                 outputdirectory="generated/lexer-test/"
@@ -50,6 +50,21 @@
             <fileset dir="generated" includes="**/*"/>
             <fileset dir="build" includes="**/*"/>
         </delete>
+    </target>
+
+    <!-- Lexer Test -->
+    <target name="build-parser"
+            description="generate java code for parser"
+            depends="javacc-download">
+        <jjtree target="src/parser/parser.jjt"
+                outputdirectory="generated/"
+                javacchome="${javacc-dest}/bin/lib"/>
+        <javacc target="generated/parser.jj"
+                outputdirectory="generated/"
+                javacchome="${javacc-dest}/bin/lib"/>
+
+        <javac srcdir ="generated/"
+               destdir="build/"/>
     </target>
 
 </project>

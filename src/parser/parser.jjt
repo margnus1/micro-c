@@ -1,0 +1,398 @@
+options {
+  STATIC = false; // Bug in 6.0 with STATIC=true
+}
+
+PARSER_BEGIN(UcParse)
+
+import java.util.*;
+import java.io.*;
+
+class UcParse {
+  public static void main(String[] arg)
+  throws ParseException, IOException {
+    if (arg.length != 1) {
+        System.out.println("Usage: UcParse <input file name>");
+        System.exit(0);
+    }
+    InputStream is = new FileInputStream(arg[0]);
+
+    UcParse parser = new UcParse(is);
+    SimpleNode tree = parser.Start();
+
+    tree.dump("");
+
+  }
+}
+
+enum Binop { ANDAND, NE,
+        LT, GT, LTEQ, GTEQ,
+        PLUS, MINUS,
+        MUL, DIV, EQEQ, NOTEQ}
+
+PARSER_END(UcParse)
+
+
+SKIP : { " " | "\t" | "\n" | "\r" | "\f" }
+
+        SPECIAL_TOKEN : {
+<SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")? > }
+
+
+//multiline comments
+        MORE :
+        {
+        "/*" : IN_MULTI_LINE_COMMENT
+        }
+
+
+<IN_MULTI_LINE_COMMENT>
+SPECIAL_TOKEN :
+        {
+<MULTI_LINE_COMMENT: "*/" > : DEFAULT
+        }
+
+<IN_MULTI_LINE_COMMENT>
+MORE :
+        {
+< ~[] >
+        }
+
+// keywords   why extern?
+        TOKEN : {<CHAR    : "char">}
+
+        TOKEN : {<ELSE    : "else">}
+        TOKEN : {<EXTERN  : "extern">}
+        TOKEN : {<IF      : "if">}
+        TOKEN : {<INT     : "int">}
+        TOKEN : {<RETURN  : "return">}
+        TOKEN : {<VOID    : "void">}
+        TOKEN : {<WHILE   : "while">}
+
+
+// special symbols
+
+
+        TOKEN : {<NOTEQ  : "!=">}
+        TOKEN : {<NOT    : "!">}
+        TOKEN : {<ANDAND : "&&">}
+        TOKEN : {<LPAREN : "(">}
+        TOKEN : {<RPAREN : ")">}
+        TOKEN : {<MUL    : "*">}
+        TOKEN : {<PLUS   : "+">}
+        TOKEN : {<COMMA  : ",">}
+        TOKEN : {<MINUS  : "-">}
+        TOKEN : {<DIV    : "/">}
+        TOKEN : {<SEMI   : ";">}
+        TOKEN : {<LTEQ   : "<=">}
+        TOKEN : {<LT     : "<">}
+        TOKEN : {<EQEQ   : "==">}
+        TOKEN : {<EQ     : "=">}
+        TOKEN : {<GTEQ   : ">=">}
+        TOKEN : {<GT     : ">">}
+        TOKEN : {<LBRACK : "[">}
+        TOKEN : {<RBRACK : "]">}
+        TOKEN : {<LBRACE : "{">}
+        TOKEN : {<RBRACE : "}">}
+
+// TOKEN : {<STRING >}
+
+// Decimal integer constants
+        TOKEN : {<INTEGER_CONSTANT : ( ["1"-"9"] (["0"-"9"])*
+        | "0" ) >}
+
+//char literals
+        TOKEN: {<CHARACTER_LITERAL:
+        "\'" ( ["\u0020"-"\u007e"]
+        |  "\\n" )
+        "\'" >}
+
+        TOKEN : {
+<IDENTIFIER: <LETTER> (<LETTER> | <DIGIT>)*>
+        | <#LETTER: ["$","A"-"Z","_","a"-"z"]>
+        | <#DIGIT: ["0"-"9"]>
+        }
+
+
+SimpleNode Start() :
+{
+}
+{
+    ( TopLevelDeclaration()
+    )* {
+        return jjtThis;
+    }
+}
+
+void TopLevelDeclaration() :
+{
+}
+{
+  BaseType()
+  Declarator()
+  (
+    FunctionParameters()
+    (
+      CompoundStatement()
+    |
+      <SEMI>
+    )
+  |
+      { }
+  )
+}
+
+//List<void> FunctionParameters () :
+void FunctionParameters () :
+{
+}
+{ <LPAREN>
+  (
+    <VOID>
+  |
+    Declaration()
+    ( <COMMA>
+      Declaration()
+    )*
+  )
+  <RPAREN>
+}
+
+void Declaration () :
+{
+}
+{
+  BaseType()
+  Declarator()
+}
+
+// List<void> AbstractFunctionParameters () :
+void AbstractFunctionParameters () :
+{
+}
+{
+  FunctionParameters ()
+}
+
+void BaseType () :
+{}
+{
+  <CHAR>
+|
+  <INT>
+|
+  <VOID>
+}
+
+void Declarator () :
+{
+}
+{
+  Identifier()
+  ( <LBRACK>
+    ( IntegerLiteral()
+    ) ?
+    <RBRACK>
+  |
+  { }
+  )
+}
+
+void CompoundStatement () :
+{
+}
+{
+  <LBRACE>
+  ( Declaration()
+    <SEMI>
+  )*
+  ( Statement()
+  )*
+  <RBRACE>
+}
+
+void Statement() :
+{
+}
+{
+  SimpleCompoundStatement()
+|
+  Expression()
+  <SEMI>
+|
+  <SEMI>
+|
+  <IF>
+  <LPAREN>
+  Expression()
+  <RPAREN>
+  Statement()
+  ( LOOKAHEAD(1)
+    <ELSE>
+    Statement() )?
+|
+  <WHILE>
+  <LPAREN>
+  Expression()
+  <RPAREN>
+  Statement()
+|
+  <RETURN>
+  ( Expression() )?
+  <SEMI>
+}
+
+void SimpleCompoundStatement() :
+{
+}
+{
+  <LBRACE>
+  ( Statement()
+  )*
+  <RBRACE>
+}
+
+
+
+void Expression () #void : {}
+{
+    Expr5L()
+    (<EQ> Expression() #Assignment(2)
+    | {})
+
+////   (Expr5L()  (<EQ> Expr5L())*) #Assignment(>1)
+}
+
+void Expr5L() #void :{}
+{
+    Expr9L() (<ANDAND> Expr9L() { jjtThis.value=(Binop.ANDAND); } #Binary(2))*
+}
+
+void Expr9L() #void :{Binop op;}
+{
+    Expr10L() ((<EQEQ>  { op= Binop.EQEQ; }
+               |<NOTEQ> { op= Binop.NOTEQ; } )
+               Expr10L() {jjtThis.value=op;} #Binary(2))*
+}
+
+void Expr10L()#void :{Binop op;}
+{
+    Expr12L() ( ( <LT>   { op= Binop.LT; }
+                | <LTEQ> { op= Binop.LTEQ; }
+                | <GT>   { op= Binop.GT; }
+                | <GTEQ> { op= Binop.GTEQ; } )
+                 Expr12L() {jjtThis.value=op;} #Binary(2))*
+}
+
+void Expr12L()#void :{Binop op;}
+{
+    Expr13L()
+        ( ( <PLUS>   { op= Binop.PLUS; }
+          | <MINUS> { op= Binop.MINUS; })
+     Expr13L() {jjtThis.value=op;} #Binary(2))*
+}
+
+void Expr13L() #void : {Binop op;}
+{
+    ExprPrime() ((<MUL> { op= Binop.MUL; }
+                 |<DIV> { op= Binop.DIV; })
+          ExprPrime() {jjtThis.value=op;} #Binary(2))*
+
+
+}
+
+void ExprPrime() :{}{
+        IntegerLiteral()
+        | <LPAREN>
+Expression()
+<RPAREN>
+| Identifier()
+        ( <LBRACK>
+Expression()
+<RBRACK>
+| <LPAREN>
+(
+        Expression()
+        ( <COMMA>
+Expression()
+        )*
+        | { } )
+<RPAREN>
+| {  }
+        )
+        |
+        Unary() ExprPrime()
+        }
+
+//void AdditiveExpression():
+//{}
+//{
+//MultiplicativeExpression() ( ( "+" | "-" ) MultiplicativeExpression() )*
+//}
+//
+//void MultiplicativeExpression():
+//{}
+//{
+//UnaryExpression() ( ( "*" | "/"  ) UnaryExpression() )*
+
+
+
+void Unary() :
+{
+
+    Token name;
+}
+{
+  name = <MINUS>{
+
+                    jjtThis.value = name.kind;
+                    }
+|
+  name = <NOT> {
+
+                                   jjtThis.value = name.image;
+                                   }
+}
+
+void Binary () :
+{
+}
+{
+  <MUL>
+|
+  <DIV>
+|
+  <PLUS>
+|
+  <MINUS>
+|
+  <LT>
+|
+  <GT>
+|
+  <LTEQ>
+|
+  <GTEQ>
+|
+  <EQEQ>
+|
+  <NOTEQ>
+|
+  <ANDAND>
+| <EQ>
+}
+
+
+void Identifier() :
+{
+}
+{
+  <IDENTIFIER>
+}
+
+
+void IntegerLiteral() :
+{
+}
+{
+ <INTEGER_CONSTANT>
+}
