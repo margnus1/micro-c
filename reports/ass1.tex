@@ -16,9 +16,22 @@ language. All tokens that need to be detected are specified in the
 
 \section{Technical Issues}
 \subsection{Comments}
+We specify comments as \emph{special tokens}. Special tokens are neither seen in
+the normal token stream nor participates in the grammar, but can be accessed
+programmatically if needed.
 \begin{description}
-	\item[Single Line Comment] The token is specified to start with ``\textbf{//}'' and end at end-of-line (``\textit{\textbackslash n}'', ``\textit{\textbackslash r}'' or ``\textit{\textbackslash r\textbackslash n}'').
-	\item[Multiline Comment] We use keyword \emph{MORE} to specify the rule when we see \textit{/*} : change from state \emph{DEFAULT} to state \emph{IN\_MULTI\_LINE\_COMMENT}. Within \emph{IN\_MULTI\_LINE\_COMMENT}, any character will be matched until \textit{*/} is seen. So the whole comment will be recognized as one token and the lexical state will be changed back to \emph{DEFAULT} afterwards.
+\item[Single Line Comment] The token is specified to start with ``\textbf{//}'',
+  followed by zero or more of any character except for line-feed
+  (``\textit{\textbackslash n}'') and carriage-return (``\textit{\textbackslash
+    r}''). Finally, it may optinally end with a end-of-line character sequence
+  (``\textit{\textbackslash n}'', ``\textit{\textbackslash r}'' or
+  ``\textit{\textbackslash r\textbackslash n}'').
+\item[Multiline Comment] We use keyword \emph{MORE} to specify the rule when we
+  see \textit{/*} : change from state \emph{DEFAULT} to state
+  \emph{IN\_MULTI\_LINE\_COMMENT}. Within \emph{IN\_MULTI\_LINE\_COMMENT}, any
+  character will be matched until \textit{*/} is seen. So the whole comment will
+  be recognized as one token and the lexical state will be changed back to
+  \emph{DEFAULT} afterwards.
 
 \end{description}
 \subsection{End-of-file}
