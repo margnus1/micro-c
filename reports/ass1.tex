@@ -10,7 +10,7 @@
 \begin{document}
 \maketitle
 \section{General Description}
-We use the JavaCC Framework to implement a lexical analyzer for the \uC
+We use the JavaCC Framework to implement a lexical analyser for the \uC
 language. All tokens that need to be detected are specified in the
 \texttt{lexer-test.jj} file.
 
@@ -23,10 +23,10 @@ programmatically if needed.
 \item[Single Line Comment] The token is specified to start with ``\textbf{//}'',
   followed by zero or more of any character except for line-feed
   (``\textit{\textbackslash n}'') and carriage-return (``\textit{\textbackslash
-    r}''). Finally, it may optinally end with a end-of-line character sequence
+    r}''). Finally, it may optionally end with a end-of-line character sequence
   (``\textit{\textbackslash n}'', ``\textit{\textbackslash r}'' or
   ``\textit{\textbackslash r\textbackslash n}'').
-\item[Multiline Comment] To specify multi-line comments, we use \emph{lexical
+\item[Multi-line Comment] To specify multi-line comments, we use \emph{lexical
     states} and \emph{partial token rules}. Partial token rules are specified
   with the \emph{MORE} keyword, and consume part of a token, but requires a
   regular (\emph{TOKEN} or \emph{SPECIAL\_TOKEN}) rule in the end of the chain
@@ -35,7 +35,7 @@ programmatically if needed.
   When we see a \textit{/*} sequence, we transition, using a partial rule, to
   the \emph{IN\_MULTI\_LINE\_COMMENT} lexical state. Within that lexical state,
   any character will be matched by partial rules until \textit{*/} is seen,
-  which completes the special token. So the whole comment will be recognized as
+  which completes the special token. So the whole comment will be recognised as
   one token and the lexical state will be changed back to \emph{DEFAULT}
   afterwards.
 
