@@ -1,7 +1,8 @@
 \documentclass[a4paper,11pt]{article}
 
 %% We can use macros to avoid typing the same thing over and over
-\newcommand{\token}[1]{$ \langle $ #1 $ \rangle $}
+\newcommand{\token}[1]{\texttt{<#1>}}
+\newcommand{\uC}{{$\mathrm{\mu}$}C }
 
 \title{Assignment 1: Lexical Analyzer}
 \author{Xiao Yang \and Magnus L{\aa}ng} % replace by your name(s)
@@ -9,8 +10,9 @@
 \begin{document}
 \maketitle
 \section{General Description}
-	We use JavaCC Framework to implement the lexical analyzer for uC language.
-	All tokens need to be detected are specified in the \textit{lexer-test.jj} file.
+We use the JavaCC Framework to implement a lexical analyzer for the \uC
+language. All tokens that need to be detected are specified in the
+\texttt{lexer-test.jj} file.
 
 \section{Technical Issues}
 \subsection{Comments}
@@ -20,10 +22,18 @@
 
 \end{description}
 \subsection{End-of-file}
-	End-of-file is simply a token denoted by \token{EOF} in JavaCC. And when we recognize tokens, every token should be recognized before \token{EOF}. (For e.g., multiline comments without \textit{*/} before \token{EOF} is illegal.)
+When JavaCC encounters end-of-file, it tries to end the current token, and then
+inserts a last \token{EOF} token in the token stream. If no token type matches
+the lexeme at that point, it will generate a lexical error.
+
+If there is an unterminated multi-line comment, there will be no rule matching
+that lexeme and JavaCC will generate a lexical error. However, if end-of-file is
+found inside a single-line comment, that lexeme will be accepted as a
+single-line comment, since end-of-line is not required at the end of the single
+line comment special token.
+
 \subsection{Source Code Position}
-	Source code position information is provided with JavaCC in \textit{Token.java} file. We simply attach these information to our output.
-
-
+Source code position information is provided automatically by JavaCC in the
+\texttt{Token} base class.
 
 \end{document}
