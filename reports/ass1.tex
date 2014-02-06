@@ -26,12 +26,18 @@ programmatically if needed.
     r}''). Finally, it may optinally end with a end-of-line character sequence
   (``\textit{\textbackslash n}'', ``\textit{\textbackslash r}'' or
   ``\textit{\textbackslash r\textbackslash n}'').
-\item[Multiline Comment] We use keyword \emph{MORE} to specify the rule when we
-  see \textit{/*} : change from state \emph{DEFAULT} to state
-  \emph{IN\_MULTI\_LINE\_COMMENT}. Within \emph{IN\_MULTI\_LINE\_COMMENT}, any
-  character will be matched until \textit{*/} is seen. So the whole comment will
-  be recognized as one token and the lexical state will be changed back to
-  \emph{DEFAULT} afterwards.
+\item[Multiline Comment] To specify multi-line comments, we use \emph{lexical
+    states} and \emph{partial token rules}. Partial token rules are specified
+  with the \emph{MORE} keyword, and consume part of a token, but requires a
+  regular (\emph{TOKEN} or \emph{SPECIAL\_TOKEN}) rule in the end of the chain
+  to make it a complete token.
+
+  When we see a \textit{/*} sequence, we transition, using a partial rule, to
+  the \emph{IN\_MULTI\_LINE\_COMMENT} lexical state. Within that lexical state,
+  any character will be matched by partial rules until \textit{*/} is seen,
+  which completes the special token. So the whole comment will be recognized as
+  one token and the lexical state will be changed back to \emph{DEFAULT}
+  afterwards.
 
 \end{description}
 \subsection{End-of-file}
