@@ -31,6 +31,10 @@ enum Binop { ANDAND, NE,
         PLUS, MINUS,
         MUL, DIV, EQEQ, NOTEQ}
 
+enum Unop { NOT, MINUS }
+
+enum Type {INT, CHAR, VOID}
+
 PARSER_END(UcParse)
 
 
@@ -107,14 +111,14 @@ SimpleNode Start() : {}
     }
 }
 
-void TopLevelDeclaration() : {}
+void TopLevelDeclaration() #void: {}
 {
   BaseType()
   Declarator()
   ( FunctionParameters()
-    ( CompoundStatement()
-    | <SEMI> )
-  | <SEMI> )
+    ( CompoundStatement() #FunctionDefinition(4)
+    | <SEMI> #FunctionDeclaration(3) )
+  | <SEMI> #VariableDeclaration(2) )
 }
 
 void FunctionParameters() : {}
@@ -139,9 +143,9 @@ void AbstractFunctionParameters() : {}
 }
 
 void BaseType() : {}
-{ <CHAR>
-| <INT>
-| <VOID>
+{ <CHAR> {jjtThis.value = Type.CHAR;}
+| <INT>  {jjtThis.value = Type.INT;}
+| <VOID> {jjtThis.value = Type.VOID;}
 }
 
 void Declarator () : {}
@@ -156,17 +160,17 @@ void Declarator () : {}
 void CompoundStatement () : {}
 {
   <LBRACE>
-  ( Declaration()
-    <SEMI> )*
-  ( Statement() )*
+  ( ( Declaration()
+      <SEMI> )* #Declarations)
+  ( ( Statement() )* #Statements )
   <RBRACE>
 }
 
-void Statement() : {}
+void Statement() #void : {}
 { SimpleCompoundStatement()
 | Expression()
   <SEMI>
-| <SEMI>
+| <SEMI> #EmptyStatement(0)
 | <IF>
   <LPAREN>
   Expression()
@@ -174,15 +178,16 @@ void Statement() : {}
   Statement()
   ( LOOKAHEAD(1)
     <ELSE>
-    Statement() )?
+    Statement() #IfStatement(3)
+  | {} #IfStatement(2))
 | <WHILE>
   <LPAREN>
   Expression()
   <RPAREN>
-  Statement()
+  Statement() #WhileStatement(2)
 | <RETURN>
   ( Expression() )?
-  <SEMI>
+  <SEMI> #ReturnStatement
 }
 
 void SimpleCompoundStatement() : {}
@@ -239,7 +244,7 @@ void Expr13L() #void : {Binop op;}
 
 }
 
-void ExprPrime() #void: {}
+void ExprPrime() #void: { Unop op; }
 { ( IntegerLiteral()
   | <LPAREN>
     Expression()
@@ -250,7 +255,9 @@ void ExprPrime() #void: {}
       <RBRACK> #ArrayLookup(2)
     | FunctionArguments() #FunctionCall(2)
     | {} )
-  | Unary() ExprPrime() #UnaryExpr)
+  | ( <MINUS> { op = Unop.MINUS; }
+    | <NOT>   { op = Unop.NOT; })
+    ExprPrime() {jjtThis.value = op;} #UnaryExpr(1))
 }
 
 void FunctionCall() : {}
@@ -264,11 +271,6 @@ void FunctionArguments() : {}
       Expression() )*
   | {} )
   <RPAREN>
-}
-
-void Unary() : { Token name; }
-{ ( name = <MINUS>
-  | name = <NOT>  ) { jjtThis.value = name.kind; }
 }
 
 void Identifier() : { Token id; }
