@@ -56,11 +56,12 @@
     <target name="build-parser"
             description="generate java code for parser"
             depends="javacc-download">
+        <mkdir dir="generated/parser"/>
         <jjtree target="src/parser/parser.jjt"
-                outputdirectory="generated/"
+                outputdirectory="generated/parser"
                 javacchome="${javacc-dest}/bin/lib"/>
-        <javacc target="generated/parser.jj"
-                outputdirectory="generated/"
+        <javacc target="generated/parser/parser.jj"
+                outputdirectory="generated/parser/"
                 javacchome="${javacc-dest}/bin/lib"/>
 
         <javac srcdir ="generated/"

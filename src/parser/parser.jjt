@@ -5,26 +5,12 @@ options {
 }
 
 PARSER_BEGIN(UcParse)
+package parser;
 
 import java.util.*;
 import java.io.*;
 
-class UcParse {
-  public static void main(String[] arg)
-  throws ParseException, IOException {
-    if (arg.length != 1) {
-        System.out.println("Usage: UcParse <input file name>");
-        System.exit(0);
-    }
-    InputStream is = new FileInputStream(arg[0]);
-
-    UcParse parser = new UcParse(is);
-    SimpleNode tree = parser.Start();
-
-    tree.dump("");
-
-  }
-}
+public class UcParse {}
 
 enum Binop { ANDAND, NE,
         LT, GT, LTEQ, GTEQ,
