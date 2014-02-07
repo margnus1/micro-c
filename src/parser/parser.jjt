@@ -1,5 +1,7 @@
 options {
   STATIC = false; // Bug in 6.0 with STATIC=true
+  VISITOR = true;
+  TRACK_TOKENS = true;
 }
 
 PARSER_BEGIN(UcParse)
@@ -39,189 +41,133 @@ SKIP : { " " | "\t" | "\n" | "\r" | "\f" }
 
 
 //multiline comments
-        MORE :
-        {
-        "/*" : IN_MULTI_LINE_COMMENT
-        }
+MORE : { "/*" : IN_MULTI_LINE_COMMENT }
 
 
 <IN_MULTI_LINE_COMMENT>
 SPECIAL_TOKEN :
-        {
-<MULTI_LINE_COMMENT: "*/" > : DEFAULT
-        }
+        { <MULTI_LINE_COMMENT: "*/" > : DEFAULT }
 
 <IN_MULTI_LINE_COMMENT>
-MORE :
-        {
-< ~[] >
-        }
+MORE : { < ~[] > }
 
-// keywords   why extern?
-        TOKEN : {<CHAR    : "char">}
-
-        TOKEN : {<ELSE    : "else">}
-        TOKEN : {<EXTERN  : "extern">}
-        TOKEN : {<IF      : "if">}
-        TOKEN : {<INT     : "int">}
-        TOKEN : {<RETURN  : "return">}
-        TOKEN : {<VOID    : "void">}
-        TOKEN : {<WHILE   : "while">}
+// keywords
+TOKEN : {<CHAR    : "char">}
+TOKEN : {<ELSE    : "else">}
+TOKEN : {<IF      : "if">}
+TOKEN : {<INT     : "int">}
+TOKEN : {<RETURN  : "return">}
+TOKEN : {<VOID    : "void">}
+TOKEN : {<WHILE   : "while">}
 
 
 // special symbols
-
-
-        TOKEN : {<NOTEQ  : "!=">}
-        TOKEN : {<NOT    : "!">}
-        TOKEN : {<ANDAND : "&&">}
-        TOKEN : {<LPAREN : "(">}
-        TOKEN : {<RPAREN : ")">}
-        TOKEN : {<MUL    : "*">}
-        TOKEN : {<PLUS   : "+">}
-        TOKEN : {<COMMA  : ",">}
-        TOKEN : {<MINUS  : "-">}
-        TOKEN : {<DIV    : "/">}
-        TOKEN : {<SEMI   : ";">}
-        TOKEN : {<LTEQ   : "<=">}
-        TOKEN : {<LT     : "<">}
-        TOKEN : {<EQEQ   : "==">}
-        TOKEN : {<EQ     : "=">}
-        TOKEN : {<GTEQ   : ">=">}
-        TOKEN : {<GT     : ">">}
-        TOKEN : {<LBRACK : "[">}
-        TOKEN : {<RBRACK : "]">}
-        TOKEN : {<LBRACE : "{">}
-        TOKEN : {<RBRACE : "}">}
-
-// TOKEN : {<STRING >}
+TOKEN : {<NOTEQ  : "!=">}
+TOKEN : {<NOT    : "!">}
+TOKEN : {<ANDAND : "&&">}
+TOKEN : {<LPAREN : "(">}
+TOKEN : {<RPAREN : ")">}
+TOKEN : {<MUL    : "*">}
+TOKEN : {<PLUS   : "+">}
+TOKEN : {<COMMA  : ",">}
+TOKEN : {<MINUS  : "-">}
+TOKEN : {<DIV    : "/">}
+TOKEN : {<SEMI   : ";">}
+TOKEN : {<LTEQ   : "<=">}
+TOKEN : {<LT     : "<">}
+TOKEN : {<EQEQ   : "==">}
+TOKEN : {<EQ     : "=">}
+TOKEN : {<GTEQ   : ">=">}
+TOKEN : {<GT     : ">">}
+TOKEN : {<LBRACK : "[">}
+TOKEN : {<RBRACK : "]">}
+TOKEN : {<LBRACE : "{">}
+TOKEN : {<RBRACE : "}">}
 
 // Decimal integer constants
-        TOKEN : {<INTEGER_CONSTANT : ( ["1"-"9"] (["0"-"9"])*
-        | "0" ) >}
+TOKEN : {<INTEGER_CONSTANT : ( ["1"-"9"] (["0"-"9"])*
+                             | "0" ) >}
 
 //char literals
-        TOKEN: {<CHARACTER_LITERAL:
-        "\'" ( ["\u0020"-"\u007e"]
-        |  "\\n" )
-        "\'" >}
+TOKEN: {<CHARACTER_LITERAL:
+    "\'" ( ["\u0020"-"\u007e"]
+         |  "\\n" )
+    "\'" >}
 
-        TOKEN : {
-<IDENTIFIER: <LETTER> (<LETTER> | <DIGIT>)*>
-        | <#LETTER: ["$","A"-"Z","_","a"-"z"]>
-        | <#DIGIT: ["0"-"9"]>
-        }
+TOKEN : {
+    <IDENTIFIER: <LETTER> (<LETTER> | <DIGIT>)*>
+               | <#LETTER: ["$","A"-"Z","_","a"-"z"]>
+               | <#DIGIT: ["0"-"9"]>}
 
-
-SimpleNode Start() :
+SimpleNode Start() : {}
 {
-}
-{
-    ( TopLevelDeclaration()
-    )* {
+    ( TopLevelDeclaration() )*
+    <EOF>  {
         return jjtThis;
     }
 }
 
-void TopLevelDeclaration() :
-{
-}
+void TopLevelDeclaration() : {}
 {
   BaseType()
   Declarator()
-  (
-    FunctionParameters()
-    (
-      CompoundStatement()
-    |
-      <SEMI>
-    )
-  |
-      { }
-  )
+  ( FunctionParameters()
+    ( CompoundStatement()
+    | <SEMI> )
+  | <SEMI> )
 }
 
-//List<void> FunctionParameters () :
-void FunctionParameters () :
-{
-}
+void FunctionParameters() : {}
 { <LPAREN>
-  (
-    <VOID>
-  |
-    Declaration()
+  ( <VOID>
+  | Declaration()
     ( <COMMA>
-      Declaration()
-    )*
-  )
+      Declaration() )* )
   <RPAREN>
 }
 
-void Declaration () :
-{
-}
+void Declaration() : {}
 {
   BaseType()
   Declarator()
 }
 
 // List<void> AbstractFunctionParameters () :
-void AbstractFunctionParameters () :
-{
-}
+void AbstractFunctionParameters() : {}
 {
   FunctionParameters ()
 }
 
-void BaseType () :
-{}
-{
-  <CHAR>
-|
-  <INT>
-|
-  <VOID>
+void BaseType() : {}
+{ <CHAR>
+| <INT>
+| <VOID>
 }
 
-void Declarator () :
-{
-}
+void Declarator () : {}
 {
   Identifier()
   ( <LBRACK>
-    ( IntegerLiteral()
-    ) ?
+    ( IntegerLiteral() )?
     <RBRACK>
-  |
-  { }
-  )
+  | {} )
 }
 
-void CompoundStatement () :
-{
-}
+void CompoundStatement () : {}
 {
   <LBRACE>
   ( Declaration()
-    <SEMI>
-  )*
-  ( Statement()
-  )*
+    <SEMI> )*
+  ( Statement() )*
   <RBRACE>
 }
 
-void Statement() :
-{
-}
-{
-  SimpleCompoundStatement()
-|
-  Expression()
+void Statement() : {}
+{ SimpleCompoundStatement()
+| Expression()
   <SEMI>
-|
-  <SEMI>
-|
-  <IF>
+| <SEMI>
+| <IF>
   <LPAREN>
   Expression()
   <RPAREN>
@@ -229,25 +175,20 @@ void Statement() :
   ( LOOKAHEAD(1)
     <ELSE>
     Statement() )?
-|
-  <WHILE>
+| <WHILE>
   <LPAREN>
   Expression()
   <RPAREN>
   Statement()
-|
-  <RETURN>
+| <RETURN>
   ( Expression() )?
   <SEMI>
 }
 
-void SimpleCompoundStatement() :
-{
-}
+void SimpleCompoundStatement() : {}
 {
   <LBRACE>
-  ( Statement()
-  )*
+  ( Statement() )*
   <RBRACE>
 }
 
@@ -256,10 +197,8 @@ void SimpleCompoundStatement() :
 void Expression () #void : {}
 {
     Expr5L()
-    (<EQ> Expression() #Assignment(2)
+    ( <EQ> Expression() #Assignment(2)
     | {})
-
-////   (Expr5L()  (<EQ> Expr5L())*) #Assignment(>1)
 }
 
 void Expr5L() #void :{}
@@ -267,132 +206,79 @@ void Expr5L() #void :{}
     Expr9L() (<ANDAND> Expr9L() { jjtThis.value=(Binop.ANDAND); } #Binary(2))*
 }
 
-void Expr9L() #void :{Binop op;}
+void Expr9L() #void : {Binop op;}
 {
-    Expr10L() ((<EQEQ>  { op= Binop.EQEQ; }
-               |<NOTEQ> { op= Binop.NOTEQ; } )
+    Expr10L() (( <EQEQ>  { op = Binop.EQEQ; }
+               | <NOTEQ> { op = Binop.NOTEQ; } )
                Expr10L() {jjtThis.value=op;} #Binary(2))*
 }
 
-void Expr10L()#void :{Binop op;}
+void Expr10L() #void : {Binop op;}
 {
     Expr12L() ( ( <LT>   { op= Binop.LT; }
                 | <LTEQ> { op= Binop.LTEQ; }
                 | <GT>   { op= Binop.GT; }
                 | <GTEQ> { op= Binop.GTEQ; } )
-                 Expr12L() {jjtThis.value=op;} #Binary(2))*
+                Expr12L() {jjtThis.value=op;} #Binary(2) )*
 }
 
-void Expr12L()#void :{Binop op;}
+void Expr12L() #void : {Binop op;}
 {
     Expr13L()
-        ( ( <PLUS>   { op= Binop.PLUS; }
-          | <MINUS> { op= Binop.MINUS; })
-     Expr13L() {jjtThis.value=op;} #Binary(2))*
+        ( ( <PLUS>  { op = Binop.PLUS; }
+          | <MINUS> { op = Binop.MINUS; } )
+          Expr13L() {jjtThis.value=op;} #Binary(2) )*
 }
 
 void Expr13L() #void : {Binop op;}
 {
-    ExprPrime() ((<MUL> { op= Binop.MUL; }
-                 |<DIV> { op= Binop.DIV; })
-          ExprPrime() {jjtThis.value=op;} #Binary(2))*
-
+    ExprPrime()
+        ( ( <MUL> { op= Binop.MUL; }
+          | <DIV> { op= Binop.DIV; })
+          ExprPrime() {jjtThis.value=op;} #Binary(2) )*
 
 }
 
-void ExprPrime() :{}{
-        IntegerLiteral()
-        | <LPAREN>
-Expression()
-<RPAREN>
-| Identifier()
-        ( <LBRACK>
-Expression()
-<RBRACK>
-| <LPAREN>
-(
-        Expression()
-        ( <COMMA>
-Expression()
-        )*
-        | { } )
-<RPAREN>
-| {  }
-        )
-        |
-        Unary() ExprPrime()
-        }
-
-//void AdditiveExpression():
-//{}
-//{
-//MultiplicativeExpression() ( ( "+" | "-" ) MultiplicativeExpression() )*
-//}
-//
-//void MultiplicativeExpression():
-//{}
-//{
-//UnaryExpression() ( ( "*" | "/"  ) UnaryExpression() )*
-
-
-
-void Unary() :
-{
-
-    Token name;
-}
-{
-  name = <MINUS>{
-
-                    jjtThis.value = name.kind;
-                    }
-|
-  name = <NOT> {
-
-                                   jjtThis.value = name.image;
-                                   }
+void ExprPrime() #void: {}
+{ ( IntegerLiteral()
+  | <LPAREN>
+    Expression()
+    <RPAREN>
+  | Identifier()
+    ( <LBRACK>
+      Expression()
+      <RBRACK> #ArrayLookup(2)
+    | FunctionArguments() #FunctionCall(2)
+    | {} )
+  | Unary() ExprPrime() #UnaryExpr)
 }
 
-void Binary () :
-{
+void FunctionCall() : {}
+{ FunctionArguments()
 }
-{
-  <MUL>
-|
-  <DIV>
-|
-  <PLUS>
-|
-  <MINUS>
-|
-  <LT>
-|
-  <GT>
-|
-  <LTEQ>
-|
-  <GTEQ>
-|
-  <EQEQ>
-|
-  <NOTEQ>
-|
-  <ANDAND>
-| <EQ>
+
+void FunctionArguments() : {}
+{ <LPAREN>
+  ( Expression()
+    ( <COMMA>
+      Expression() )*
+  | {} )
+  <RPAREN>
+}
+
+void Unary() : { Token name; }
+{ ( name = <MINUS>
+  | name = <NOT>  ) { jjtThis.value = name.kind; }
+}
+
+void Identifier() : { Token id; }
+{ id = <IDENTIFIER> { jjtThis.value = id.image; }
 }
 
 
-void Identifier() :
-{
-}
-{
-  <IDENTIFIER>
-}
-
-
-void IntegerLiteral() :
-{
-}
-{
- <INTEGER_CONSTANT>
+void IntegerLiteral() : { Token lit; }
+{ ( lit = <INTEGER_CONSTANT>
+  | lit = <CHARACTER_LITERAL>) {
+        jjtThis.value = lit.getValue();
+    }
 }
