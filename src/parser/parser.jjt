@@ -279,8 +279,20 @@ void Identifier() : { Token id; }
 
 
 void IntegerLiteral() : { Token lit; }
-{ ( lit = <INTEGER_CONSTANT>
-  | lit = <CHARACTER_LITERAL>) {
-        jjtThis.value = lit.getValue();
-    }
+{ lit = <INTEGER_CONSTANT> {
+      jjtThis.value = Integer.parseInt(lit.image);
+  }
+| lit = <CHARACTER_LITERAL> {
+      if(lit.image.charAt(1) == '\\'){
+          switch (lit.image.charAt(2)){
+          case 'n':
+              jjtThis.value = 10;
+              break;
+          default:
+              throw new RuntimeException("Bad escape code in character literal");
+          }
+      }else{
+          jjtThis.value = (int)(lit.image.charAt(1));
+      }
+  }
 }
