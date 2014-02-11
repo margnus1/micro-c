@@ -1,4 +1,4 @@
-<project default="compile-l">
+<project default="compile">
     <property name="build" location="out"/>
 
     <!-- JavaCC -->
@@ -26,14 +26,12 @@
                 outputdirectory="generated/lexer-test/"
                 javacchome="${javacc-dest}/bin/lib"/>
     </target>
-
     <target name="compile-l"
             depends="lexer-test">
         <mkdir dir="build/lexer-test"/>
         <javac srcdir ="generated/lexer-test"
                destdir="build/lexer-test"/>
     </target>
-
     <target name="run-l"
             depends="compile-l">
         <property name="testfile" location="testcases/quiet/lexer/l05.c"/>
@@ -52,20 +50,32 @@
         </delete>
     </target>
 
-    <!-- Lexer Test -->
-    <target name="build-parser"
+    <!-- Parser -->
+    <target name="generate-parser"
             description="generate java code for parser"
             depends="javacc-download">
         <mkdir dir="generated/parser"/>
+        <copy todir="generated/parser">
+          <fileset dir="src/parser" includes="**/*.java"/>
+        </copy>
         <jjtree target="src/parser/parser.jjt"
                 outputdirectory="generated/parser"
                 javacchome="${javacc-dest}/bin/lib"/>
         <javacc target="generated/parser/parser.jj"
                 outputdirectory="generated/parser/"
                 javacchome="${javacc-dest}/bin/lib"/>
+    </target>
 
-        <javac srcdir ="generated/"
-               destdir="build/"/>
+    <target name="compile"
+            description="Compile the compiler"
+            depends="generate-parser">
+      <mkdir dir="build"/>
+      <javac destdir="build">
+        <src path="src"/>
+        <src path="generated"/>
+        <exclude name="absyn/**"/>
+        <exclude name="parser/**"/> <!-- They are copied to the generated directory -->
+      </javac>
     </target>
 
 </project>
