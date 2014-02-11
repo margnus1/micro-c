@@ -110,13 +110,13 @@ void TopLevelDeclaration() #void: {}
 void FunctionParameters() : {}
 { <LPAREN>
   ( <VOID>
-  | Declaration()
+  | VariableDeclaration()
     ( <COMMA>
-      Declaration() )* )
+      VariableDeclaration() )* )
   <RPAREN>
 }
 
-void Declaration() : {}
+void VariableDeclaration() : {}
 {
   BaseType()
   Declarator()
@@ -134,20 +134,20 @@ void BaseType() : {}
 | <VOID> {jjtThis.value = Type.VOID;}
 }
 
-void Declarator () : {}
+void Declarator () #void : {}
 {
   Identifier()
   ( <LBRACK>
-    ( IntegerLiteral() )?
-    <RBRACK>
+    ( IntegerLiteral() <RBRACK> #ArrayDeclarator(2)
+    | <RBRACK> #ArrayDeclarator(1))
   | {} )
 }
 
 void CompoundStatement () : {}
 {
   <LBRACE>
-  ( ( Declaration()
-      <SEMI> )* #Declarations)
+  ( ( VariableDeclaration()
+      <SEMI> )* #VariableDeclarations)
   ( ( Statement() )* #Statements )
   <RBRACE>
 }
@@ -172,8 +172,8 @@ void Statement() #void : {}
   <RPAREN>
   Statement() #WhileStatement(2)
 | <RETURN>
-  ( Expression() )?
-  <SEMI> #ReturnStatement
+  ( Expression() <SEMI> #ReturnStatement(1)
+   | <SEMI> #ReturnStatement(0))
 }
 
 void SimpleCompoundStatement() : {}
@@ -194,7 +194,7 @@ void Expression () #void : {}
 
 void Expr5L() #void :{}
 {
-    Expr9L() (<ANDAND> Expr9L() { jjtThis.value=(Binop.ANDAND); } #Binary(2))*
+    Expr9L() (<ANDAND> Expr9L() { jjtThis.value=(Binop.ANDAND); } #Binary(2))ZX*
 }
 
 void Expr9L() #void : {Binop op;}
