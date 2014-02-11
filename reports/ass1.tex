@@ -4,7 +4,8 @@
 \newcommand{\token}[1]{\texttt{<#1>}}
 \newcommand{\uC}{{$\mathrm{\mu}$}C }
 
-\title{Assignment 1: Lexical Analyzer}
+\title{Assignment 1: Lexical Analyzer \\
+       Compiler Design Project, 1DL420}
 \author{Xiao Yang \and Magnus L{\aa}ng} % replace by your name(s)
 \date{\today}
 \begin{document}
@@ -26,7 +27,7 @@ programmatically if needed.
     r}''). Finally, it may optionally end with a end-of-line character sequence
   (``\textit{\textbackslash n}'', ``\textit{\textbackslash r}'' or
   ``\textit{\textbackslash r\textbackslash n}'').
-\item[Multi-line Comment] To specify multi-line comments, we use \emph{lexical
+\item[Multi-Line Comment] To specify multi-line comments, we use \emph{lexical
     states} and \emph{partial token rules}. Partial token rules are specified
   with the \emph{MORE} keyword, and consume part of a token, but requires a
   regular (\emph{TOKEN} or \emph{SPECIAL\_TOKEN}) rule in the end of the chain
