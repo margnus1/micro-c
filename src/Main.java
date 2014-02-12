@@ -20,7 +20,10 @@ public class Main {
             tree.jjtAccept(new UcParseVisitor() {
                 @Override
                 public Object visit(SimpleNode node, Object data) {
-                    System.out.println((String)data + node + " " + node.jjtGetValue());
+                    System.out.print((String)data + node);
+                    if (node.jjtGetValue() != null)
+                        System.out.print(" " + node.jjtGetValue());
+                    System.out.println();
                     node.childrenAccept(this, (String)data + "  ");
                     return null;
                 }
