@@ -23,9 +23,9 @@ Also, annotations that pops a certain number of nodes and makes a new node of th
 
 \subsection{Precedence of Binary Operators}
 When we rewrite the grammar to remove ambiguity and enforce the precedence of operators, we expand the expression production into a chain of productions.
-The production with the lowest precedence operators become the starting production for an expression, which then produces non-terminals of the next precendence level, and so on.
+The production with the lowest precedence operators become the starting production for an expression, which then produces non-terminals of the next precedence level, and so on.
 
-For example, a grammar of addition and multiplication could express the higher precendence of multiplication in the following way:
+For example, a grammar of addition and multiplication could express the higher precedence of multiplication in the following way:
 \begin{align*}
   Expr \rightarrow &\; Expr \;\text{``\texttt{+}''}\; Expr' \\
        \mid \:     &\; Expr'
@@ -63,7 +63,7 @@ For example, a grammar of addition and multiplication could express the higher p
 \renewcommand\thesection{Appendix \Alph{section}} %% Add the word ``Appendix'' to the numbering
 
 \section{AST Structure}
-Here we present the nodes and their children of our Abstract Syntax Tree. Note that \emph{\#Expression} and \emph{\#Statement} are abstract node classes which are used to ease the representaion of the tree structure. The real nodes belong to these two classes are listed in the end.
+Here we present the nodes and their children of our Abstract Syntax Tree. Note that \emph{\#Expression} and \emph{\#Statement} are abstract node classes which are used to ease the representation of the tree structure. The real nodes belong to these two classes are listed in the end.
 
 \hspace{1em}
 
