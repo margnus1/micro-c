@@ -2,7 +2,7 @@ FunctionDefinition
 	BaseType
 	Identifier
 	FunctionParameters
-	CompundStatement
+	CompoundStatement
 
 FunctionDeclaration
 	BaseType
@@ -12,6 +12,10 @@ FunctionDeclaration
 VariableDeclaration
 	BaseType
 	Identifier | ArrayDeclarator
+
+FunctionParameters
+	VariableDeclaration
+	...
 
 CompoundStatement
 	VariableDeclarations
@@ -29,7 +33,7 @@ Statements
 	IfStatement
 	EmptyStatement
 	WhileStatement
-	CompundStatement
+	CompoundStatement
 	ReturnStatement
 	#Expression
 

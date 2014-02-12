@@ -3,56 +3,218 @@
 %% We can use macros to avoid typing the same thing over and over
 \newcommand{\token}[1]{\texttt{<#1>}}
 \newcommand{\uC}{{$\mathrm{\mu}$}C }
+ \usepackage{tikz}
+ \usepackage{tikz-qtree}
+ \usepackage{array}
+\usepackage{amsmath}
+\usepackage{multicol} 
 
-\title{Assignment 1: Lexical Analyzer}
+\title{Assignment 2: Parser}
 \author{Xiao Yang \and Magnus L{\aa}ng} % replace by your name(s)
 \date{\today}
 \begin{document}
 \maketitle
-\section{General Description}
-We use the JavaCC Framework to implement a lexical analyser for the \uC
-language. All tokens that need to be detected are specified in the
-\texttt{lexer-test.jj} file.
+
 
 \section{Technical Issues}
-\subsection{Comments}
-We specify comments as \emph{special tokens}. Special tokens are neither seen in
-the normal token stream nor participates in the grammar, but can be accessed
-programmatically if needed.
-\begin{description}
-\item[Single Line Comment] The token is specified to start with ``\textbf{//}'',
-  followed by zero or more of any character except for line-feed
-  (``\textit{\textbackslash n}'') and carriage-return (``\textit{\textbackslash
-    r}''). Finally, it may optionally end with a end-of-line character sequence
-  (``\textit{\textbackslash n}'', ``\textit{\textbackslash r}'' or
-  ``\textit{\textbackslash r\textbackslash n}'').
-\item[Multi-line Comment] To specify multi-line comments, we use \emph{lexical
-    states} and \emph{partial token rules}. Partial token rules are specified
-  with the \emph{MORE} keyword, and consume part of a token, but requires a
-  regular (\emph{TOKEN} or \emph{SPECIAL\_TOKEN}) rule in the end of the chain
-  to make it a complete token.
+\subsection{Precedence of binary operators}
+When rewrite the grammar to guarantee the precedence of operators, we first expand the production with low precedence operators and then the ones with high precedence.
+For example, when considering \emph{plus} and \emph{multiply}, we use the following rules to enforce the precedence.
+\begin{eqnarray*}
+	& Expr \rightarrow Expr' + Expr' \\
+	& Expr' \rightarrow Expr'' * Expr''
+\end{eqnarray*}
 
-  When we see a \textit{/*} sequence, we transition, using a partial rule, to
-  the \emph{IN\_MULTI\_LINE\_COMMENT} lexical state. Within that lexical state,
-  any character will be matched by partial rules until \textit{*/} is seen,
-  which completes the special token. So the whole comment will be recognised as
-  one token and the lexical state will be changed back to \emph{DEFAULT}
-  afterwards.
+\subsection{Associativity of binary operators}
+\begin{itemize}
+	\item \textbf{Left-Associative} \\
+	For left-associative operators, we use the \emph{EBNF} form to rewrite the grammar.
+	Also take expressions with \emph{plus} as an example, we write the following grammar rule:
+	\begin{eqnarray*}
+		Expr \rightarrow Expr' (+ Expr')*
+	\end{eqnarray*}
+	
+	
+	\item \textbf{Right-Associative} \\
+	For right-associative operators, we adopt right recursive rules to build corresponding nodes.
+	Take \emph{assignment} as an example, we write the following rule:
+	\begin{eqnarray*}
+		Expr \rightarrow Expr' = Expr
+	\end{eqnarray*}
+	
+\end{itemize}
 
-\end{description}
-\subsection{End-of-file}
-When JavaCC encounters end-of-file, it tries to end the current token, and then
-inserts a last \token{EOF} token in the token stream. If no token type matches
-the lexeme at that point, it will generate a lexical error.
 
-If there is an unterminated multi-line comment, there will be no rule matching
-that lexeme and JavaCC will generate a lexical error. However, if end-of-file is
-found inside a single-line comment, that lexeme will be accepted as a
-single-line comment, since end-of-line is not required at the end of the single
-line comment special token.
+\newpage
 
-\subsection{Source Code Position}
-Source code position information is provided automatically by JavaCC in the
-\texttt{Token} base class.
+\section{Appendix: AST Structure}
+Here we present the nodes and their children of our Abstract Syntax Tree. Note that \emph{\#Expression} and \emph{\#Statement} are abstract node classes which are used to ease the representaion of the tree structure. The real nodes belong to these two classes are listed in the end.
+
+\begin{tikzpicture}[grow=down]
+\tikzset{level distance = 30pt, sibling distance = 10pt}
+
+\Tree [.FunctionDefinition
+			[.BaseType ]
+			[.Identifier ]
+			[.FunctionParameters ]
+			[.CompoundStatement ]
+		]
+
+\end{tikzpicture}
+
+\begin{tikzpicture}[grow=down]
+\tikzset{level distance = 30pt, sibling distance = 10pt}
+
+\Tree [.FunctionDeclaration
+			[.BaseType ]
+			[.FunctionParameters ]
+			[.CompoundStatement ]
+		]
+
+\end{tikzpicture}
+
+\begin{tikzpicture}[grow=down]
+\tikzset{level distance = 30pt, sibling distance = 10pt}
+
+\Tree [.VariableDeclaration
+			[.BaseType ]
+			[.Identifier$|$ArrayDeclarator ]
+		]
+
+\end{tikzpicture}
+
+
+\begin{tikzpicture}[grow=down]
+\tikzset{level distance = 30pt, sibling distance = 10pt}
+
+\Tree [.FunctionParameters
+			[.VariableDeclaration ]
+			[.$\dots$ ]
+		]
+
+\end{tikzpicture}
+
+
+\begin{tikzpicture}[grow=down]
+\tikzset{level distance = 30pt, sibling distance = 10pt}
+
+\Tree [.CompoundStatement
+			[.VariableDeclarations ]
+			[.Statements ]
+		]
+
+\end{tikzpicture}
+
+\begin{tikzpicture}[grow=down]
+\tikzset{level distance = 30pt, sibling distance = 10pt}
+
+\Tree [.VariableDeclarations
+			[.VariableDeclaration ]
+			[.$\dots$ ]
+		]
+
+\end{tikzpicture}
+
+\begin{tikzpicture}[grow=down]
+\tikzset{level distance = 30pt, sibling distance = 10pt}
+
+\Tree [.Statements
+			[.\#~Statement ]
+			[.$\dots$ ]
+		]
+
+\end{tikzpicture}
+
+
+\begin{tikzpicture}[grow=down]
+\tikzset{level distance = 30pt, sibling distance = 10pt}
+
+\Tree [.IfStatement
+			[.\#~Expression ]
+			[.\#~Statement ]
+			[.\#~Statement(?) ]
+		]
+\end{tikzpicture}
+
+\begin{tikzpicture}[grow=down]
+\tikzset{level distance = 30pt, sibling distance = 10pt}
+\Tree [.WhileStatement
+			[.\#~Expression ]
+			[.\#~Statement ]
+		]
+\end{tikzpicture}
+
+\begin{tikzpicture}[grow=down]
+\tikzset{level distance = 30pt, sibling distance = 10pt}
+\Tree [.ReturnStatement
+			[.\#~Expression(?) ]
+		]
+\end{tikzpicture}
+
+
+\begin{tikzpicture}[grow=down]
+\tikzset{level distance = 30pt, sibling distance = 10pt}
+\Tree [.Binary
+			[.\#~Expression ]
+			[.\#~Expression ]
+		]
+\end{tikzpicture}
+
+\begin{tikzpicture}[grow=down]
+\tikzset{level distance = 30pt, sibling distance = 10pt}
+\Tree [.Unary
+			[.\#~Expression ]
+		]
+\end{tikzpicture}
+
+\begin{tikzpicture}[grow=down]
+\tikzset{level distance = 30pt, sibling distance = 10pt}
+\Tree [.Assignment
+			[.\#~Expression ]
+			[.\#~Expression ]
+		]
+\end{tikzpicture}
+
+\begin{tikzpicture}[grow=down]
+\tikzset{level distance = 30pt, sibling distance = 10pt}
+\Tree [.ArrayLookup
+			[.Identifier ]
+			[.\#~Expression ]
+		]
+\end{tikzpicture}
+
+
+
+
+\begin{multicols}{2}
+\paragraph{\#~Statement} 
+\begin{itemize}
+	\item IfStatement 
+	\item EmptyStatement 
+	\item WhileStatement 
+	\item CompoundStatement 
+	\item ReturnStatement 
+	\item \#~Expression 
+\end{itemize}
+
+
+\paragraph{\#~Expression} 
+\begin{itemize}
+	\item Binary 
+	\item Assignment 
+	\item Unary 
+	\item IntegerLiteral 
+	\item Identifier 
+	\item ArrayLookup
+\end{itemize}
+\end{multicols}
+	
+
+
+
+
+
+
+
 
 \end{document}
