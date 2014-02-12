@@ -194,7 +194,7 @@ void Expression () #void : {}
 
 void Expr5L() #void :{}
 {
-    Expr9L() (<ANDAND> Expr9L() { jjtThis.value=(Binop.ANDAND); } #Binary(2))ZX*
+    Expr9L() (<ANDAND> Expr9L() { jjtThis.value=(Binop.ANDAND); } #Binary(2))*
 }
 
 void Expr9L() #void : {Binop op;}
