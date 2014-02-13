@@ -1,5 +1,6 @@
 import parser.*;
 import semantic.SemanticChecker;
+import semantic.SemanticError;
 
 import java.io.*;
 
@@ -37,6 +38,8 @@ public class Main {
             System.err.println(lexicalError.getMessage());
         } catch (ParseException parseError) {
             System.err.println("Parse error: " + parseError.getMessage());
+        } catch (SemanticError semanticError) {
+            semanticError.printNicely(arg[0]);
         }
     }
 }
