@@ -7,12 +7,14 @@ import  parser.*;
 public class FunctionType {
     private Type returnType;
     private Type[] argumentTypes;
+    private SimpleNode node;
 
     /**
      * Creates a FunctionType from a FunctionDeclaration or FunctionDefinition AST node.
      * @param node The AST node.
      */
     public FunctionType(SimpleNode node){
+        this.node = node;
         assert(node.getId() == UcParseTreeConstants.JJTFUNCTIONDECLARATION ||
                node.getId() == UcParseTreeConstants.JJTFUNCTIONDEFINITION);
         returnType = new Type(node.jjtGetChild(0));
@@ -26,24 +28,18 @@ public class FunctionType {
     public Type getReturnType() {
         return returnType;
     }
-
     public Type[] getArgumentTypes() {
         return argumentTypes;
+    }
+    public SimpleNode getNode() {
+        return node;
     }
 
     @Override
     public String toString() {
-        return toString(null);
-    }
-
-    /**
-     * Generates a function specification including the name of the function
-     * @param name Name of the function
-     */
-    public String toString(String name) {
         StringBuilder tsBuilder = new StringBuilder();
         tsBuilder.append(returnType);
-        if (name != null) tsBuilder.append(" " + name);
+        if (node != null) tsBuilder.append(" " + node.jjtGetChild(1).jjtGetValue());
         tsBuilder.append('(');
         for (Type a : argumentTypes)
             tsBuilder.append(a + ", ");
