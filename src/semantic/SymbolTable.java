@@ -37,7 +37,7 @@ public class SymbolTable {
         }
 
         //need throw an exception VariableCannotBeFound?
-        return null;
+        throw new SemanticError("Variable Definition Cannot Be Found", node);
 
     }
 
@@ -46,14 +46,12 @@ public class SymbolTable {
             return funcTable.get(name);
         }
 
-        //need an exception?
-        return null;
+        throw new SemanticError("Function Definition Cannot Be Found", node);
     }
 
     public boolean addVariable(String name, SimpleNode node){
         if(checkScope(name)){
-            return false;
-            //maybe throw exception
+            throw new SemanticError("Redeclaration of variable",node);
         }
 
         Map currentScope = varTable.get(varTable.size()-1);
@@ -64,14 +62,12 @@ public class SymbolTable {
         return true;
     }
 
-    public boolean addFunction(String name, SimpleNode node){
+    public void addFunction(String name, SimpleNode node){
         if(funcTable.containsKey(name)){
-            return false;
-            //throw exception
+            throw new SemanticError("Function with the same name already exists", node);
         }
 
         funcTable.put(name, new FunctionType(node));
-        return true;
     }
     
     public boolean checkScope(String name){
@@ -95,5 +91,15 @@ public class SymbolTable {
         //remove the set at the end of the linked list
         varTable.remove(varTable.size()-1);
         System.out.println("Exit Scope");
+    }
+
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        for(Map s : varTable){
+            sb.append(s.toString());
+            sb.append("\n");
+        }
+        sb.append(funcTable.toString()+"\n");
+        return sb.toString();
     }
 }
