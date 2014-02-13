@@ -7,6 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/javacc-5.0" />
       <excludeFolder url="file://$MODULE_DIR$/src/absyn" />
+      <excludeFolder url="file://$MODULE_DIR$/src/parser" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

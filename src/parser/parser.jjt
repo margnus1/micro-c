@@ -12,15 +12,6 @@ import java.io.*;
 
 public class UcParse {}
 
-enum Binop { ANDAND, NE,
-        LT, GT, LTEQ, GTEQ,
-        PLUS, MINUS,
-        MUL, DIV, EQEQ, NOTEQ}
-
-enum Unop { NOT, MINUS }
-
-enum Type {INT, CHAR, VOID}
-
 PARSER_END(UcParse)
 
 
