@@ -1,4 +1,6 @@
 import parser.*;
+import semantic.SemanticChecker;
+
 import java.io.*;
 
 /**
@@ -17,6 +19,9 @@ public class Main {
 
         try {
             SimpleNode tree = parser.Start();
+
+            SemanticChecker.start(tree);
+
             tree.jjtAccept(new UcParseVisitor() {
                 @Override
                 public Object visit(SimpleNode node, Object data) {
