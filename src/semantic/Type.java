@@ -1,10 +1,8 @@
 package semantic;
 import parser.SimpleNode;
-import parser.UcParse;
 import parser.UcParseTreeConstants;
 
 import java.lang.*;
-
 
 /**
  * Created by Magnus on 2014-02-13.
@@ -20,8 +18,8 @@ public class Type {
     private SimpleNode expr;
 
     /**
-     * Constructs the type of a literal, variable declaration, or formal declaration.
-     * @param node The node containing a literal, variable declaration or formal declaration
+     * Constructs the type of a literal, variable declaration, formal declaration or base type.
+     * @param node The node containing a literal, variable declaration, formal declaration, or baes type.
      */
     public Type(SimpleNode node) {
         expr = node;
@@ -41,6 +39,11 @@ public class Type {
             case UcParseTreeConstants.JJTBASETYPE:
                 type = primitiveFromBaseType((parser.Type)node.jjtGetValue());
                 break;
+            case UcParseTreeConstants.JJTINTEGERLITERAL:
+                type = Primitive.LITERAL;
+                break;
+            default:
+                throw new RuntimeException("Unexpected AST node type \"" + node + "\" in Type constructor");
         }
     }
 
@@ -49,7 +52,7 @@ public class Type {
             case INT:  return Primitive.INT;
             case CHAR: return Primitive.CHAR;
             case VOID: return Primitive.VOID;
-            default: throw new RuntimeException("Unexpected base type in AST");
+            default: throw new RuntimeException("Unexpected base type " + type + " in AST");
         }
     }
 
@@ -57,12 +60,38 @@ public class Type {
         type = t;
     }
 
+    private Type(Type base, SimpleNode expr) {
+        type = base.type;
+        of = base.of;
+        size = base.size;
+        this.expr = expr;
+    }
+
     /**
      * Asserts that this type can be converted to @param t
-     * @param t The type that is conveted to
+     * @param t The type that is converted to
      */
-    public void canBeConvertedTo(Type t) {
-        //return TRUE;
+    public void assertConvertibleTo(Type t) {
+        if (!(this.canBeConvertedTo(t)))
+            throw new SemanticError(this + " can't be converted to a " + t, this.expr, t.expr);
+    }
+
+    private boolean canBeConvertedTo(Type t) {
+        if (type == Primitive.ARRAY) {
+            return t.type    == Primitive.ARRAY
+                && t.of.type == of.type;
+        }
+        if (type == t.type) return true;
+        if (type == Primitive.LITERAL &&
+            isIntegral(t.type)) return true;
+        return false;
+    }
+
+    private boolean isIntegral(Primitive p) {
+        switch (p) {
+            case INT: case CHAR: case LITERAL: return true;
+            default: return false;
+        }
     }
 
     /**
@@ -72,7 +101,31 @@ public class Type {
      * @return Unified type
      */
     public Type unify(Type other, SimpleNode expressionThatUnifies) {
-        //if (bad) throw new SemanticError();
-        //else return INT;
+        if (this.canBeConvertedTo(other)) return new Type(other, expressionThatUnifies);
+        if (other.canBeConvertedTo(this)) return new Type(this,  expressionThatUnifies);
+        throw new SemanticError("Types " + this + " and " + other + " are not unifiable", this.expr, other.expr);
+    }
+
+    public SimpleNode getExpr() {
+        return expr;
+    }
+
+    @Override
+    public boolean equals(Object b) {
+        if (!(b instanceof Type)) return false;
+        Type t = (Type)b;
+        if (type != t.type) return false;
+        return (type != Primitive.ARRAY || of.equals(t.of));
+    }
+
+    @Override
+    public String toString() {
+        switch (type) {
+            case VOID:    return "void";
+            case LITERAL: return "*int or char*";
+            case INT:     return "int";
+            case CHAR:    return "char";
+            case ARRAY:   return of.toString() + "[" + (size == null ? "" : size) + "]";
+        }
     }
 }
