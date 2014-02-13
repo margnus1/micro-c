@@ -126,6 +126,7 @@ public class Type {
             case INT:     return "int";
             case CHAR:    return "char";
             case ARRAY:   return of.toString() + "[" + (size == null ? "" : size) + "]";
+            default: throw new RuntimeException("Unexpected type");
         }
     }
 }
