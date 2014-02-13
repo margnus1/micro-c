@@ -59,20 +59,19 @@ class SimpleNode implements Node {
   public void jjtSetLastToken(Token token) { this.lastToken = token; }
 
   /** Accept the visitor. **/
-  public Object jjtAccept(UcParseVisitor visitor, Object data)
+  public void jjtAccept(UcParseVisitor visitor, Object data)
 {
-    return visitor.visit(this, data);
+    visitor.visit(this, data);
   }
 
   /** Accept the visitor. **/
-  public Object childrenAccept(UcParseVisitor visitor, Object data)
+  public void childrenAccept(UcParseVisitor visitor, Object data)
 {
     if (children != null) {
       for (int i = 0; i < children.length; ++i) {
         children[i].jjtAccept(visitor, data);
       }
     }
-    return data;
   }
 
   /* You can override these two methods in subclasses of SimpleNode to

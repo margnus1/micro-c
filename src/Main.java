@@ -20,20 +20,20 @@ public class Main {
 
         try {
             SimpleNode tree = parser.Start();
+            tree.jjtAccept(new TokenRangeNormaliserVisitor(), null);
 
             SemanticChecker.start(tree);
-
-            tree.jjtAccept(new UcParseVisitor() {
+            tree.jjtAccept(new UcParseVisitor<String>() {
                 @Override
-                public Object visit(SimpleNode node, Object data) {
-                    System.out.print((String)data + node);
+                public void visit(SimpleNode node, String data) {
+                    System.out.print(data + node);
                     if (node.jjtGetValue() != null)
                         System.out.print(" " + node.jjtGetValue());
                     System.out.println();
-                    node.childrenAccept(this, (String)data + "  ");
-                    return null;
+                    node.childrenAccept(this, data + "  ");
                 }
             }, "");
+            System.exit(0);
         } catch (TokenMgrError lexicalError) {
             System.err.println(lexicalError.getMessage());
         } catch (ParseException parseError) {
@@ -41,5 +41,6 @@ public class Main {
         } catch (SemanticError semanticError) {
             semanticError.printNicely(arg[0]);
         }
+        System.exit(1);
     }
 }

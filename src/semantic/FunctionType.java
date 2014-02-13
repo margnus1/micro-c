@@ -43,7 +43,8 @@ public class FunctionType {
         tsBuilder.append('(');
         for (Type a : argumentTypes)
             tsBuilder.append(a + ", ");
-        tsBuilder.delete(tsBuilder.length() - 3, tsBuilder.length() - 1);
+        if (argumentTypes.length != 0)
+            tsBuilder.delete(tsBuilder.length() - 2, tsBuilder.length());
         tsBuilder.append(')');
         return tsBuilder.toString();
     }
