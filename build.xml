@@ -64,6 +64,11 @@
         <javacc target="generated/parser/parser.jj"
                 outputdirectory="generated/parser/"
                 javacchome="${javacc-dest}/bin/lib"/>
+        <delete> <!-- Delete the files that already exist in src/parser -->
+          <fileset dir="generated/parser/" includes="**/*.java">
+            <present targetdir="src/parser/"/>
+          </fileset>
+        </delete>
     </target>
 
     <target name="compile"
@@ -73,8 +78,6 @@
       <javac destdir="build">
         <src path="src"/>
         <src path="generated"/>
-        <exclude name="absyn/**"/>
-        <exclude name="parser/**"/> <!-- They are copied to the generated directory -->
       </javac>
     </target>
 
