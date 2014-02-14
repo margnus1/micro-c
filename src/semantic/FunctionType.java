@@ -8,6 +8,7 @@ public class FunctionType {
     private Type returnType;
     private Type[] argumentTypes;
     private SimpleNode node;
+    private SimpleNode definition;
 
     /**
      * Creates a FunctionType from a FunctionDeclaration or FunctionDefinition AST node.
@@ -22,6 +23,8 @@ public class FunctionType {
         argumentTypes = new Type[args.jjtGetNumChildren()];
         for (int i = 0; i < argumentTypes.length; i++) {
             argumentTypes[i] = new Type(args.jjtGetChild(i));
+            if (argumentTypes[i].hasSize())
+                throw new SemanticError("An array function formal may not have a size.", args.jjtGetChild(i));
         }
     }
 
@@ -33,6 +36,12 @@ public class FunctionType {
     }
     public SimpleNode getNode() {
         return node;
+    }
+    public SimpleNode getDefinition() {
+        return definition;
+    }
+    public void setDefinition(SimpleNode definition) {
+        this.definition = definition;
     }
 
     @Override

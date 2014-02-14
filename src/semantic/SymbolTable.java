@@ -49,25 +49,61 @@ public class SymbolTable {
         throw new SemanticError("Function Definition Cannot Be Found", node);
     }
 
-    public boolean addVariable(String name, SimpleNode node){
-        if(checkScope(name)){
-            throw new SemanticError("Redeclaration of variable",node);
-        }
-
+    public Type addVariable(SimpleNode node){
+        String name = getVarName(node);
         Map<String,Type> currentScope = varTable.get(varTable.size()-1);
 
-        currentScope.put(name, new Type(node));
-
-
-        return true;
-    }
-
-    public void addFunction(String name, SimpleNode node){
-        if(funcTable.containsKey(name)){
-            throw new SemanticError("Function with the same name already exists", node);
+        if(currentScope.containsKey(name)){
+            throw new SemanticError("A variable with the same name was already declared in this scope",
+                    currentScope.get(name).getExpr(), node);
+        }
+        if (varTable.size() == 1 && funcTable.containsKey(name)) {
+            throw new SemanticError("Global variable name clashes with function name.",
+                    funcTable.get(name).getNode(), node);
         }
 
-        funcTable.put(name, new FunctionType(node));
+        Type varType =  new Type(node);
+        currentScope.put(name, varType);
+        return varType;
+    }
+
+    private String getVarName(SimpleNode declaration) {
+        assert (declaration.getId() == UcParseTreeConstants.JJTVARIABLEDECLARATION);
+        // get the second child of variable declaration
+        // it is either an Identifier or ArrayDeclarator
+        SimpleNode secondChild = declaration.jjtGetChild(1);
+        switch (secondChild.getId()){
+            case UcParseTreeConstants.JJTIDENTIFIER:
+                return (String)secondChild.jjtGetValue();
+            case UcParseTreeConstants.JJTARRAYDECLARATOR:
+                return (String)secondChild.jjtGetChild(0).jjtGetValue();
+            default:
+                throw new RuntimeException("Invalid node in AST");
+        }
+    }
+
+    public void addFunctionDeclaration(String name, SimpleNode node){
+        FunctionType type = new FunctionType(node);
+
+        if(funcTable.containsKey(name)) {
+            if (!funcTable.get(name).equals(type))
+                throw new SemanticError("Declarations of function " + name + " have conflicting types",
+                        funcTable.get(name).getNode(), node);
+        } else if (varTable.get(0).containsKey(name)) {
+            throw new SemanticError("Global variable name clashes with function name.",
+                    varTable.get(0).get(name).getExpr(), node);
+        } else {
+            funcTable.put(name, type);
+        }
+    }
+
+    public void addFunctionDefinition(String name, SimpleNode node) {
+        assert(funcTable.containsKey(name));
+        FunctionType declaration = funcTable.get(name);
+        if (declaration.getDefinition() != null)
+            throw new SemanticError("Function " + declaration + " defined multiple times",
+                    declaration.getDefinition(), node);
+        declaration.setDefinition(node);
     }
     
     public boolean checkScope(String name){

@@ -1,7 +1,6 @@
 package semantic;
 
 import parser.*;
-import java.util.*;
 
 /**
  * Created by Doris on 14-2-13.
@@ -14,18 +13,25 @@ public class SemanticChecker {
             SimpleNode child = root.jjtGetChild(i);
             switch (child.getId()){
                 case UcParseTreeConstants.JJTFUNCTIONDEFINITION:
-                    checkFuncDef(child,st);
+                    checkFuncDecl(child, st);
+                    checkFuncDef(child, st);
                     break;
                 case UcParseTreeConstants.JJTFUNCTIONDECLARATION:
+                    checkFuncDecl(child, st);
                     break;
                 case UcParseTreeConstants.JJTVARIABLEDECLARATION:
-                    checkVarDec(child,st);
+                    st.addVariable(child);
                     break;
             }
         }
-
     }
 
+    public static void checkFuncDecl(SimpleNode funcDef, SymbolTable st) {
+        //get the second child, should be an identifier
+        SimpleNode id = funcDef.jjtGetChild(1);
+        String name = (String)id.jjtGetValue();
+        st.addFunctionDeclaration(name, funcDef);
+    }
 
     public static void checkFuncDef(SimpleNode funcDef, SymbolTable st){
 
@@ -36,7 +42,7 @@ public class SemanticChecker {
         String name = (String)id.jjtGetValue();
 
         //insert into symbol table
-        st.addFunction(name,funcDef);
+        st.addFunctionDefinition(name, funcDef);
 
         //create a new Scope
         st.enterScope();
@@ -58,10 +64,10 @@ public class SemanticChecker {
     public static void checkFuncParams(SimpleNode funcParams, SymbolTable st){
         //only contains VariableDeclaration-s
 
-        for(int i=0; i< funcParams.jjtGetNumChildren()-1; i++){
+        for(int i=0; i< funcParams.jjtGetNumChildren(); i++){
 
             SimpleNode varDec = funcParams.jjtGetChild(i);
-            checkFuncVarDec(varDec, st);
+            st.addVariable(varDec);
         }
     }
 
@@ -75,10 +81,9 @@ public class SemanticChecker {
         SimpleNode varDecs = compStmt.jjtGetChild(0);
 
         //deal with each varDec
-        for(int i=0; i< varDecs.jjtGetNumChildren()-1; i++){
-
+        for(int i=0; i< varDecs.jjtGetNumChildren(); i++){
             SimpleNode varDec = varDecs.jjtGetChild(i);
-            checkVarDec(varDec, st);
+            st.addVariable(varDec);
         }
 
 
@@ -91,58 +96,6 @@ public class SemanticChecker {
 
     }
 
-    //do not know what to do with function declaration
-
-
-
-    //check variable declaration within the function parameter list
-    public static void checkFuncVarDec(SimpleNode varDec, SymbolTable st){
-        //variable declaration in function definition int a[]
-        //but normal variable declaration also allows a[5]
-
-        //get the second child of variable declaration
-        //it is either an identifier or arraydeclarator
-        SimpleNode secondChild = varDec.jjtGetChild(1);
-        switch (secondChild.getId()){
-            case UcParseTreeConstants.JJTIDENTIFIER:
-                //nothing to check, insert into symbol table
-                String name = (String)secondChild.jjtGetValue();
-                st.addVariable(name,varDec);
-                break;
-            case UcParseTreeConstants.JJTARRAYDECLARATOR:
-                //get the number of children of array declarator
-                int numChildOfArrayDec = secondChild.jjtGetNumChildren();
-                if(numChildOfArrayDec == 1){
-                    //declaration without IntegerLiteral, correct
-                    String arrName = (String)secondChild.jjtGetChild(0).jjtGetValue();
-                    st.addVariable(arrName,varDec);
-                }else{
-                    //throw an exception
-                    throw new SemanticError("Illegal Function Definition",varDec);
-                }
-                break;
-        }
-
-
-    }
-
-    //check variable declaration elsewhere
-    public static void checkVarDec(SimpleNode varDec, SymbolTable st){
-        //get the second child of variable declaration
-        //it is either an identifier or arraydeclarator
-        SimpleNode secondChild = varDec.jjtGetChild(1);
-        switch (secondChild.getId()){
-            case UcParseTreeConstants.JJTIDENTIFIER:
-                //nothing to check, insert into symbol table
-                String name = (String)secondChild.jjtGetValue();
-                st.addVariable(name,varDec);
-                break;
-            case UcParseTreeConstants.JJTARRAYDECLARATOR:
-                String arrName = (String)secondChild.jjtGetChild(0).jjtGetValue();
-                st.addVariable(arrName,varDec);
-                break;
-        }
-    }
     //question?????: how to guarantee access of an array doesn't exceed the total length
 
     //check the standalone Compound Statements

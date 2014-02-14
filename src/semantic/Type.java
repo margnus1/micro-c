@@ -110,6 +110,10 @@ public class Type {
         return expr;
     }
 
+    public boolean hasSize() {
+        return size != null;
+    }
+
     @Override
     public boolean equals(Object b) {
         if (!(b instanceof Type)) return false;
