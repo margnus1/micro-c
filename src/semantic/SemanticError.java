@@ -1,7 +1,9 @@
 package semantic;
 import parser.SimpleNode;
-import parser.Token;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.RuntimeException;
 
 /**
@@ -28,23 +30,44 @@ public class SemanticError extends RuntimeException {
      * @param file The file name to specify in the error message
      */
     public void printNicely(String file) {
-        if (node1 != null) printNode(file, node1);
-        if (node2 != null) printNode(file, node2);
-        System.out.println(file + ": " + message);
-    }
-
-    private void printNode(String file, SimpleNode node) {
-        System.out.println(file + ": " + node.jjtGetFirstToken().beginLine + ","
-        + node.jjtGetFirstToken().beginColumn + ": " + tokenListToString(node.jjtGetFirstToken(), node.jjtGetLastToken()));
-    }
-
-    private String tokenListToString(Token first, Token last) {
-        StringBuilder b = new StringBuilder();
-        while (first != last) {
-            b.append(first.image + " ");
-            first = first.next;
+        System.out.println(formatPosition(file, node1) + " error: " + message);
+        printHighlighted(node1, readLine(file, node1.jjtGetFirstToken().beginLine - 1));
+        if (node2 != null) {
+            System.out.println(formatPosition(file, node2));
+            printHighlighted(node2, readLine(file, node2.jjtGetFirstToken().beginLine - 1));
         }
-        b.append(last.image);
-        return b.toString();
+    }
+
+    private String formatPosition(String file, SimpleNode node) {
+        return file + ": " + node.jjtGetFirstToken().beginLine + ","
+                + node.jjtGetFirstToken().beginColumn + ":";
+    }
+
+    private void printHighlighted(SimpleNode node, String line) {
+        System.out.println("    " + line);
+        StringBuilder underline = new StringBuilder();
+        int beginColumn = node.jjtGetFirstToken().beginColumn - 1;
+        for (int count = 0; count < beginColumn; count++)
+            underline.append(' ');
+        int endColumn;
+        if (node.jjtGetFirstToken().beginLine < node.jjtGetLastToken().endLine)
+            endColumn = line.replace("\t", "        ").length();
+        else endColumn = node.jjtGetLastToken().endColumn;
+        underline.append('^');
+        for (int count = beginColumn + 1; count < endColumn; count++)
+             underline.append('-');
+        if (node.jjtGetFirstToken().beginLine < node.jjtGetLastToken().endLine) underline.append("...");
+        System.out.println("    " + underline);
+    }
+
+    private String readLine(String file, int number) {
+        try{
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            while (number-- > 0) br.readLine();
+            return br.readLine();
+        } catch (IOException ex) {
+            System.err.println(ex.getMessage());
+            return "";
+        }
     }
 }
