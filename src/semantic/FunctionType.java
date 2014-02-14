@@ -36,6 +36,17 @@ public class FunctionType {
     }
 
     @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof FunctionType)) return false;
+        FunctionType f2 = (FunctionType)other;
+        if (this.argumentTypes.length != f2.argumentTypes.length) return false;
+        if (!this.returnType.equals(f2.returnType)) return false;
+        for (int i = 0; i < argumentTypes.length; i++)
+            if (!this.argumentTypes[i].equals(f2.argumentTypes[i])) return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         StringBuilder tsBuilder = new StringBuilder();
         tsBuilder.append(returnType);

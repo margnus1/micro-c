@@ -15,14 +15,14 @@ public class SymbolTable {
 
         funcTable = new HashMap<String,FunctionType>();
 
-        Map initVarScope = new HashMap<String,Type>();
+        Map<String,Type> initVarScope = new HashMap<String,Type>();
 
         varTable.add(initVarScope);
 
     }
     public void enterScope(){
         //add a new set to the linked list
-        Map newVarScope = new HashMap<String,Type>();
+        Map<String,Type> newVarScope = new HashMap<String,Type>();
         varTable.add(newVarScope);
         System.out.println("Enter Scope");
     }
@@ -54,7 +54,7 @@ public class SymbolTable {
             throw new SemanticError("Redeclaration of variable",node);
         }
 
-        Map currentScope = varTable.get(varTable.size()-1);
+        Map<String,Type> currentScope = varTable.get(varTable.size()-1);
 
         currentScope.put(name, new Type(node));
 
