@@ -78,7 +78,7 @@ public class SymbolTable {
             case UcParseTreeConstants.JJTARRAYDECLARATOR:
                 return (String)secondChild.jjtGetChild(0).jjtGetValue();
             default:
-                throw new RuntimeException("Invalid node in AST");
+                throw new RuntimeException("Invalid node in AST.");
         }
     }
 
@@ -87,7 +87,7 @@ public class SymbolTable {
 
         if(funcTable.containsKey(name)) {
             if (!funcTable.get(name).equals(type))
-                throw new SemanticError("Declarations of function " + name + " have conflicting types",
+                throw new SemanticError("Declarations of function " + name + " have conflicting types.",
                         funcTable.get(name).getNode(), node);
         } else if (varTable.get(0).containsKey(name)) {
             throw new SemanticError("Global variable name clashes with function name.",
@@ -101,7 +101,7 @@ public class SymbolTable {
         assert(funcTable.containsKey(name));
         FunctionType declaration = funcTable.get(name);
         if (declaration.getDefinition() != null)
-            throw new SemanticError("Function " + declaration + " defined multiple times",
+            throw new SemanticError("Function " + declaration + " defined multiple times.",
                     declaration.getDefinition(), node);
         declaration.setDefinition(node);
     }
