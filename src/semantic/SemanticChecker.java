@@ -45,8 +45,7 @@ public class SemanticChecker {
         st.addFunctionDefinition(name, funcDef);
 
         //create a new Scope
-        st.enterScope();
-
+        st.enterScope(funcDef.jjtGetChild(3));
 
         //check FunctionParameters, the third child
         checkFuncParams(funcDef.jjtGetChild(2), st);
@@ -103,11 +102,10 @@ public class SemanticChecker {
         //need to add a new scope by ourselves
 
         //enter a new scope
-        st.enterScope();
+        st.enterScope(compStmt);
 
         //reuse the checkFuncCompStmt
         checkFuncCompStmt(compStmt,st);
-
 
         //exit the scope
         st.exitScope();
@@ -151,11 +149,11 @@ public class SemanticChecker {
         //the only difference between SimpleCompStmt & CompStmt is SimpleCompStmt doesn't allow varDecs
 
         SimpleNode thenStmt = ifStmt.jjtGetChild(1);
-        checkSimpleCompStmt(thenStmt, st);
+        checkStmt(thenStmt, st);
 
         if(numOfChild==3){
             SimpleNode elseStmt = ifStmt.jjtGetChild(2);
-            checkSimpleCompStmt(elseStmt, st);
+            checkStmt(elseStmt, st);
         }
     }
 
@@ -175,7 +173,7 @@ public class SemanticChecker {
 
     private static void checkSimpleCompStmt(SimpleNode simpleCompStmt, SymbolTable st){
         //create a new scope
-        st.enterScope();
+        st.enterScope(simpleCompStmt);
 
         for(int i =0; i < simpleCompStmt.jjtGetNumChildren(); i++){
             SimpleNode stmt = simpleCompStmt.jjtGetChild(i);

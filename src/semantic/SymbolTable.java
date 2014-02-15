@@ -20,10 +20,13 @@ public class SymbolTable {
         varTable.add(initVarScope);
 
     }
-    public void enterScope(){
+    public void enterScope(SimpleNode compoundStmt){
         //add a new set to the linked list
         Map<String,Type> newVarScope = new HashMap<String,Type>();
         varTable.add(newVarScope);
+        if(compoundStmt.jjtGetValue() != null)
+            throw new RuntimeException("Non-null value of compound statement");
+        compoundStmt.jjtSetValue(newVarScope);
         System.out.println("Enter Scope");
     }
 
@@ -38,7 +41,6 @@ public class SymbolTable {
 
         //need throw an exception VariableCannotBeFound?
         throw new SemanticError("Variable Definition Cannot Be Found", node);
-
     }
 
     public FunctionType findFunction(String name, SimpleNode node){
@@ -54,7 +56,7 @@ public class SymbolTable {
         Map<String,Type> currentScope = varTable.get(varTable.size()-1);
 
         if(currentScope.containsKey(name)){
-            throw new SemanticError("A variable with the same name was already declared in this scope",
+            throw new SemanticError("A variable with the same name was already declared in this scope.",
                     currentScope.get(name).getExpr(), node);
         }
         if (varTable.size() == 1 && funcTable.containsKey(name)) {

@@ -65,7 +65,8 @@ public class SemanticError extends RuntimeException {
         underline.append('^');
         for (int count = beginColumn + 1; count < endColumn; count++)
              underline.append('~');
-        if (node.jjtGetFirstToken().beginLine < node.jjtGetLastToken().endLine) underline.append("...");
+        if (node.jjtGetFirstToken().beginLine < node.jjtGetLastToken().endLine)
+            underline.append("...");
         System.out.println(ansiGreen + underline + ansiReset);
     }
 
