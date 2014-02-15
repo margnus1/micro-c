@@ -1,19 +1,23 @@
-FunctionDefinition
+FunctionDefinition (tick)
 	BaseType
 	Identifier
 	FunctionParameters
 	CompoundStatement
 
-FunctionDeclaration
+FunctionDeclaration (unknown)
 	BaseType
 	Identifier
 	FunctionParameters
 
-VariableDeclaration
+VariableDeclaration (tick)
 	BaseType
 	Identifier | ArrayDeclarator
 
-FunctionParameters
+ArrayDeclarator (tick, processed within varDec)
+	Identifier
+	[] | [IntegerLiteral]
+
+FunctionParameters (tick)
 	VariableDeclaration
 	...
 
@@ -33,7 +37,7 @@ Statements
 	IfStatement
 	EmptyStatement
 	WhileStatement
-	CompoundStatement
+	SimpleCompoundStatement
 	ReturnStatement
 	#Expression
 

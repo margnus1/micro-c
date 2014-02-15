@@ -37,6 +37,7 @@ public class Main {
                 semanticError.printNicely(file);
             }
             //System.exit(1);
+
         }
         System.exit(0);
     }

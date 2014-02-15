@@ -6,9 +6,12 @@ import parser.*;
 /**
  * Created by Doris on 14-2-12.
  */
+
+//local variable can disable(?) the visibility with the same name of function
 public class SymbolTable {
     private List<Map<String,Type>> varTable;
     private Map<String,FunctionType> funcTable;
+    private FunctionType lastDefinedFunction;
 
     public SymbolTable(){
         varTable = new ArrayList<Map<String,Type>>();
@@ -29,8 +32,9 @@ public class SymbolTable {
         compoundStmt.jjtSetValue(newVarScope);
     }
 
-    public Type findVariable(SimpleNode node){
-        String name = (String)node.jjtGetValue();
+
+    public Type findVariable(String name, SimpleNode node){
+
         int lastIdx = varTable.size()-1;
         for(int i = lastIdx; i>=0; i--){
             Map<String,Type> currentScope = varTable.get(i);
@@ -44,13 +48,9 @@ public class SymbolTable {
     }
 
     public FunctionType findFunction(String name, SimpleNode node){
-        int lastIdx = varTable.size()-1;
-        for(int i = lastIdx; i>=0; i--){
-            Map<String,Type> currentScope = varTable.get(i);
-            if(currentScope.containsKey(name)){
-                throw new SemanticError("Function " + name + " is shadowed by a local variable.",
-                        node, currentScope.get(name).getExpr());
-            }
+
+        if(checkScope(name)){
+            throw new SemanticError("Function is invisible from current scope",node);
         }
 
         if(funcTable.containsKey(name)){
@@ -107,6 +107,16 @@ public class SymbolTable {
             funcTable.put(name, type);
         }
     }
+//
+//    public void addFunction(String name, SimpleNode node){
+//        if(funcTable.containsKey(name) || varTable.get(0).containsKey(name)){
+//            throw new SemanticError("Function with the same name already exists", node);
+//        }
+//            FunctionType funcType = new FunctionType(node);
+//                funcTable.put(name, funcType);
+//                lastDefinedFunction = funcType;
+//    }
+
 
     public FunctionType addFunctionDefinition(String name, SimpleNode node) {
         assert(funcTable.containsKey(name));
@@ -121,9 +131,9 @@ public class SymbolTable {
     public boolean checkScope(String name){
         //check whether the symbol has already existed
 
-        if(funcTable.containsKey(name)){
-            return true;
-        }
+//        if(funcTable.containsKey(name)){
+//            return true;
+//        }
 
 
         for(Map m : varTable){
@@ -148,5 +158,9 @@ public class SymbolTable {
         }
         sb.append(funcTable.toString()+"\n");
         return sb.toString();
+    }
+
+    public FunctionType getLatestFuncDef(){
+        return lastDefinedFunction;
     }
 }

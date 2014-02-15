@@ -8,7 +8,7 @@ import java.lang.*;
  * Created by Magnus on 2014-02-13.
  */
 public class Type {
-    private enum Primitive { VOID, INT, CHAR, LITERAL, ARRAY }
+    public enum Primitive { VOID, INT, CHAR, LITERAL, ARRAY }
     private Primitive type;
     // Non-null iff type==ARRAY
     private Type of;
@@ -56,10 +56,14 @@ public class Type {
         }
     }
 
-    private Type(Primitive t) {
+
+    public Type(Primitive t) {
         this(t, null);
     }
+
+
     private Type(Primitive t, SimpleNode node) {
+
         type = t;
         this.expr = node;
     }
@@ -104,6 +108,7 @@ public class Type {
         if (isVector() && t.isPointer() && of.equals(t.of)) return true;
         if (isIntegral() && t.isIntegral()) return true;
         if (type == Primitive.CHAR && t.type == Primitive.INT) return true;
+
         return false;
     }
 
@@ -180,4 +185,29 @@ public class Type {
             default: throw new RuntimeException("Unexpected type");
         }
     }
+
+
+    //add some methods - by doris
+
+
+    public boolean isArray(){
+        if(type == Primitive.ARRAY){
+            return true;
+        }
+        return false;
+    }
+
+    public Integer size(){
+        return size;
+    }
+
+    public Type getArrayType(){
+        if(!isArray()){
+            throw new RuntimeException("Illegal access non-array type");
+        }
+        return of;
+    }
+
+
+
 }

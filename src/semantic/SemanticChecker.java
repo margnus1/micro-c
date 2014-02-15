@@ -2,6 +2,8 @@ package semantic;
 
 import parser.*;
 
+import java.util.*;
+
 /**
  * Created by Doris on 14-2-13.
  */
@@ -10,7 +12,9 @@ public class SemanticChecker {
     SymbolTable st = new SymbolTable();
     FunctionType currentFunctionContext = null;
 
+
     public void start(SimpleNode root){
+
         for(int i=0; i < root.jjtGetNumChildren(); i++){
             SimpleNode child = root.jjtGetChild(i);
             switch (child.getId()){
@@ -52,6 +56,7 @@ public class SemanticChecker {
         //check FunctionParameters, the third child
         checkFuncParams(funcDef.jjtGetChild(2));
 
+
         //check CompoundStatement, the 4th child
         checkFuncCompStmt(funcDef.jjtGetChild(3));
 
@@ -79,8 +84,11 @@ public class SemanticChecker {
         //first child, variableDeclarations
         SimpleNode varDecs = compStmt.jjtGetChild(0);
 
+
+
         //deal with each varDec
         for(int i=0; i< varDecs.jjtGetNumChildren(); i++){
+
             SimpleNode varDec = varDecs.jjtGetChild(i);
             st.addVariable(varDec);
         }
@@ -93,6 +101,60 @@ public class SemanticChecker {
             checkStmt(stmt);
         }
 
+    }
+
+    //do not know what to do with function declaration
+
+
+
+    //check variable declaration within the function parameter list
+    public static void checkFuncVarDec(SimpleNode varDec, SymbolTable st){
+        //variable declaration in function definition int a[]
+        //but normal variable declaration also allows a[5]
+
+        //get the second child of variable declaration
+        //it is either an identifier or arraydeclarator
+        SimpleNode secondChild = varDec.jjtGetChild(1);
+        switch (secondChild.getId()){
+            case UcParseTreeConstants.JJTIDENTIFIER:
+                //nothing to check, insert into symbol table
+                String name = (String)secondChild.jjtGetValue();
+                st.addVariable(name,varDec);
+                break;
+            case UcParseTreeConstants.JJTARRAYDECLARATOR:
+                //get the number of children of array declarator
+                int numChildOfArrayDec = secondChild.jjtGetNumChildren();
+                if(numChildOfArrayDec == 1){
+                    //declaration without IntegerLiteral, correct
+                    String arrName = (String)secondChild.jjtGetChild(0).jjtGetValue();
+                    st.addVariable(arrName,varDec);
+                }else{
+                    //throw an exception
+                    throw new SemanticError("Illegal Function Definition",varDec);
+                }
+                break;
+        }
+
+
+    }
+
+    //check variable declaration elsewhere
+    public static void checkVarDec(SimpleNode varDec, SymbolTable st){
+        //get the second child of variable declaration
+        //it is either an identifier or arraydeclarator
+        SimpleNode secondChild = varDec.jjtGetChild(1);
+        switch (secondChild.getId()){
+            case UcParseTreeConstants.JJTIDENTIFIER:
+                //nothing to check, insert into symbol table
+                String name = (String)secondChild.jjtGetValue();
+
+                st.addVariable(name,varDec);
+                break;
+            case UcParseTreeConstants.JJTARRAYDECLARATOR:
+                String arrName = (String)secondChild.jjtGetChild(0).jjtGetValue();
+                st.addVariable(arrName,varDec);
+                break;
+        }
     }
 
     //question?????: how to guarantee access of an array doesn't exceed the total length
@@ -149,11 +211,13 @@ public class SemanticChecker {
         //the only difference between SimpleCompStmt & CompStmt is SimpleCompStmt doesn't allow varDecs
 
         SimpleNode thenStmt = ifStmt.jjtGetChild(1);
-        checkStmt(thenStmt);
+
+        checkStmt(thenStmt, st);
 
         if(numOfChild==3){
             SimpleNode elseStmt = ifStmt.jjtGetChild(2);
-            checkStmt(elseStmt);
+            checkStmt(elseStmt, st);
+
         }
     }
 
@@ -167,7 +231,9 @@ public class SemanticChecker {
         checkExpr(condition);
 
         SimpleNode innerStmt = whileStmt.jjtGetChild(1);
-        checkSimpleCompStmt(innerStmt);
+
+        checkStmt(innerStmt, st);
+
 
     }
 
@@ -183,6 +249,7 @@ public class SemanticChecker {
         //exit the scope
         st.exitScope();
     }
+
 
     private void checkRetStmt(SimpleNode retStmt){
         assert currentFunctionContext != null;
@@ -223,7 +290,166 @@ public class SemanticChecker {
             default:
                 throw new RuntimeException("Unexpected " + expr + " in AST. Expected expression.");
         }
+    }
+//
+//    private static void checkRetStmt(SimpleNode retStmt, SymbolTable st){
+//        //how to find function info from return type
+//        //assumption? the latest defined function?
+//        FunctionType funcType = st.getLatestFuncDef();
+//
+//        Type retType = funcType.getReturnType();
+//
+//
+//        if(retStmt.jjtGetNumChildren() ==1){
+//            //if retStmt has child, then check
+//            Type exprType = checkExpr(retStmt.jjtGetChild(0),st);
+//            //assertion
+//            exprType.assertConvertibleTo(retType);
+//        }else if(!(retStmt.jjtGetNumChildren() == 0 && retType.isVoid())){
+//            //type void and 0 child of retStmt is also allowed
+//            throw new SemanticError("Illegal return type of function",retStmt);
+//        }
+//
+//    }
+
+    private static Type checkExpr(SimpleNode expr, SymbolTable st){
         //expression can be an identifier
+
+        switch (expr.getId()){
+            case UcParseTreeConstants.JJTBINARY:
+                return checkBinary(expr, st);
+            case UcParseTreeConstants.JJTASSIGNMENT:
+                return checkAssignment(expr, st);
+            case UcParseTreeConstants.JJTUNARYEXPR:
+                //the same type as its child, but should we check whether the expression can be applicable to unary op
+                return new Type(expr.jjtGetChild(0));
+            case UcParseTreeConstants.JJTINTEGERLITERAL:
+                return new Type(expr);
+            case UcParseTreeConstants.JJTARRAYLOOKUP:
+                return checkArrayLookup(expr,st);
+            case UcParseTreeConstants.JJTIDENTIFIER:
+                return st.findVariable((String)expr.jjtGetValue(),expr);
+            case UcParseTreeConstants.JJTFUNCTIONCALL:
+                return checkFuncCall(expr,st);
+
+        }
+        throw new SemanticError("Illegal Expression", expr);
+
+    }
+
+
+    private static Type checkBinary(SimpleNode binExpr, SymbolTable st){
+
+        // left associative
+
+        Type lhsType = checkExpr(binExpr.jjtGetChild(0),st);
+
+        //rhs should be literal, identifier , array lookup, !or other expression"
+        SimpleNode rhs = binExpr.jjtGetChild(1);
+        Type rhsType;
+        rhsType = checkExpr(rhs, st);
+
+
+        //lhsType.assertConvertibleTo(rhsType);
+
+        // how to decide the type after conversion???
+        return lhsType.unify(rhsType,rhs);
+    }
+
+    private static Type checkAssignment(SimpleNode assExpr, SymbolTable st){
+
+        SimpleNode lhs = assExpr.jjtGetChild(0);
+
+        //check the lhs is legal
+        //lhs should only be Identifier or ArrayLookup
+        Type lhsType;
+        if(lhs.getId() == UcParseTreeConstants.JJTIDENTIFIER){
+            lhsType = checkIdentifier(lhs, st);
+        }else if(lhs.getId() == UcParseTreeConstants.JJTARRAYLOOKUP){
+            lhsType = checkArrayLookup(lhs, st);
+        }else{
+            throw new SemanticError("Unsupported type in LHS of Assignment", assExpr);
+        }
+
+        SimpleNode rhs = assExpr.jjtGetChild(1);
+        Type rhsType = checkExpr(rhs, st);
+
+        rhsType.assertConvertibleTo(lhsType);
+
+        // how to decide the type after conversion???
+        return lhsType;
+
+    }
+
+    private static Type checkArrayLookup(SimpleNode arrayLookup, SymbolTable st){
+        //lookup needs to check whether index is out of bound
+        //needs also to check whether type matches
+        //eg: int x; x[5];
+        // first implementation without checking index
+        //array lookup return the primitive type
+        Type typeInST = st.findVariable((String) arrayLookup.jjtGetChild(0).jjtGetValue(), arrayLookup);
+
+        if(!typeInST.isArray()){
+            throw new SemanticError("Illegal access of a non-array type",arrayLookup);
+        }
+
+        //get the index to be accessed from array lookup
+        int index = (int)arrayLookup.jjtGetChild(1).jjtGetValue();
+
+        Integer size = typeInST.size();
+
+        if(size!=null){
+            //check index < size
+            if(!(index < size)){
+                throw new SemanticError("Access of array out of index",arrayLookup);
+            }
+        }
+
+        return typeInST.getArrayType();
+    }
+
+    private static Type checkIdentifier(SimpleNode id, SymbolTable st){
+        return st.findVariable((String) id.jjtGetValue(), id);
+    }
+
+    private static Type checkFuncCall(SimpleNode funcCall, SymbolTable st){
+        //check the function has already been defined
+        FunctionType funcType = st.findFunction((String)funcCall.jjtGetChild(0).jjtGetValue(),funcCall);
+
+        //number of parameters & type
+        Type[] paramList = funcType.getArgumentTypes();
+
+        SimpleNode paramNode = funcCall.jjtGetChild(1);
+
+        if(paramList.length != paramNode.jjtGetNumChildren()){
+            throw new SemanticError("parameters don't match",funcCall);
+        }
+
+        for(int i=0; i<paramNode.jjtGetNumChildren();i++){
+            //check the param in the definition with respect to symbol table
+
+            SimpleNode currentParam = paramNode.jjtGetChild(i);
+            Type currentParamType;
+            //parameter can be either identifier or literals
+            switch(currentParam.getId()){
+                case UcParseTreeConstants.JJTIDENTIFIER:
+                    currentParamType = checkIdentifier(currentParam,st);
+                    break;
+                case UcParseTreeConstants.JJTARRAYLOOKUP:
+                    currentParamType = checkArrayLookup(currentParam,st);
+                case UcParseTreeConstants.JJTINTEGERLITERAL:
+                    currentParamType = new Type (Type.Primitive.INT);
+                    break;
+                default:
+                    throw new SemanticError("Unsupported variable type for function call", funcCall);
+            }
+            currentParamType.assertConvertibleTo(paramList[i]);
+        }
+
+        //return the returnType of the function
+        return funcType.getReturnType();
+
+
     }
 
     private Type checkFuncCall(SimpleNode expr) {
@@ -242,12 +468,12 @@ public class SemanticChecker {
         return new Type(ft.getReturnType(), expr);
     }
 
-    private Type checkAssignment(SimpleNode expr) {
-        Type lhs = checkAssignable(expr.jjtGetChild(0));
-        Type rhs = checkExpr(expr.jjtGetChild(1));
-        rhs.assertConvertibleTo(lhs, expr);
-        return lhs;
-    }
+//    private Type checkAssignment(SimpleNode expr) {
+//        Type lhs = checkAssignable(expr.jjtGetChild(0));
+//        Type rhs = checkExpr(expr.jjtGetChild(1));
+//        rhs.assertConvertibleTo(lhs, expr);
+//        return lhs;
+//    }
 
     private Type checkAssignable(SimpleNode simpleNode) {
         switch (simpleNode.getId()) {
