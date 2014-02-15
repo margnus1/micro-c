@@ -16,6 +16,8 @@ public class Main {
             System.exit(0);
         }
         for (String file : arg) {
+            if (arg.length > 1)
+                System.out.println(file);
             InputStream is = new FileInputStream(file);
             UcParse parser = new UcParse(is);
 
@@ -24,8 +26,8 @@ public class Main {
                 tree.jjtAccept(new TokenRangeNormaliserVisitor(), null);
 
                 // tree.jjtAccept(new ASTPrinterVisitor(), "");
-
-                SemanticChecker.start(tree);
+                SemanticChecker semantic = new SemanticChecker();
+                semantic.start(tree);
                 continue;
             } catch (TokenMgrError lexicalError) {
                 System.err.println(lexicalError.getMessage());
@@ -38,5 +40,4 @@ public class Main {
         }
         System.exit(0);
     }
-
 }
