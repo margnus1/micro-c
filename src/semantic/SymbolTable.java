@@ -27,10 +27,10 @@ public class SymbolTable {
         if(compoundStmt.jjtGetValue() != null)
             throw new RuntimeException("Non-null value of compound statement");
         compoundStmt.jjtSetValue(newVarScope);
-        System.out.println("Enter Scope");
     }
 
-    public Type findVariable(String name, SimpleNode node){
+    public Type findVariable(SimpleNode node){
+        String name = (String)node.jjtGetValue();
         int lastIdx = varTable.size()-1;
         for(int i = lastIdx; i>=0; i--){
             Map<String,Type> currentScope = varTable.get(i);
@@ -44,6 +44,15 @@ public class SymbolTable {
     }
 
     public FunctionType findFunction(String name, SimpleNode node){
+        int lastIdx = varTable.size()-1;
+        for(int i = lastIdx; i>=0; i--){
+            Map<String,Type> currentScope = varTable.get(i);
+            if(currentScope.containsKey(name)){
+                throw new SemanticError("Function " + name + " is shadowed by a local variable.",
+                        node, currentScope.get(name).getExpr());
+            }
+        }
+
         if(funcTable.containsKey(name)){
             return funcTable.get(name);
         }
@@ -57,11 +66,11 @@ public class SymbolTable {
 
         if(currentScope.containsKey(name)){
             throw new SemanticError("A variable with the same name was already declared in this scope.",
-                    currentScope.get(name).getExpr(), node);
+                    node, currentScope.get(name).getExpr());
         }
         if (varTable.size() == 1 && funcTable.containsKey(name)) {
             throw new SemanticError("Global variable name clashes with function name.",
-                    funcTable.get(name).getNode(), node);
+                    node, funcTable.get(name).getNode());
         }
 
         Type varType =  new Type(node);
@@ -99,13 +108,14 @@ public class SymbolTable {
         }
     }
 
-    public void addFunctionDefinition(String name, SimpleNode node) {
+    public FunctionType addFunctionDefinition(String name, SimpleNode node) {
         assert(funcTable.containsKey(name));
         FunctionType declaration = funcTable.get(name);
         if (declaration.getDefinition() != null)
             throw new SemanticError("Function " + declaration + " defined multiple times.",
                     declaration.getDefinition(), node);
         declaration.setDefinition(node);
+        return declaration;
     }
     
     public boolean checkScope(String name){
@@ -128,7 +138,6 @@ public class SymbolTable {
     public void exitScope(){
         //remove the set at the end of the linked list
         varTable.remove(varTable.size()-1);
-        System.out.println("Exit Scope");
     }
 
     public String toString(){

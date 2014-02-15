@@ -29,7 +29,7 @@ public class Type {
                 SimpleNode declarator = node.jjtGetChild(1);
                 if (declarator.getId() == UcParseTreeConstants.JJTARRAYDECLARATOR) {
                     type = Primitive.ARRAY;
-                    of = new Type(primitive);
+                    of = new Type(primitive, node.jjtGetChild(0));
                     if (declarator.jjtGetNumChildren() == 2)
                         size = (Integer)declarator.jjtGetChild(1).jjtGetValue();
                 } else {
@@ -57,10 +57,14 @@ public class Type {
     }
 
     private Type(Primitive t) {
+        this(t, null);
+    }
+    private Type(Primitive t, SimpleNode node) {
         type = t;
+        this.expr = node;
     }
 
-    private Type(Type base, SimpleNode expr) {
+    public Type(Type base, SimpleNode expr) {
         type = base.type;
         of = base.of;
         size = base.size;
@@ -68,30 +72,71 @@ public class Type {
     }
 
     /**
+     * @return The element type of an array
+     */
+    public Type getElementType() {
+        assert type == Primitive.ARRAY;
+        return of;
+    }
+
+    /**
      * Asserts that this type can be converted to @param t
      * @param t The type that is converted to
      */
-    public void assertConvertibleTo(Type t) {
+    public void assertConvertibleTo(Type t, SimpleNode convertingNode) {
         if (!(this.canBeConvertedTo(t)))
-            throw new SemanticError(this + " can't be converted to a " + t, this.expr, t.expr);
+            throw new SemanticError(this + " can't be converted to a " + t + ".",
+                    convertingNode, this.expr, t.expr);
+    }
+
+    /**
+     * Asserts that this type can be used in arithmetic expressions
+     * @param arithmeticNode The node that requires this type to be arithmetic
+     */
+    public void assertArithmetic(SimpleNode arithmeticNode) {
+        if (!(new Type(Primitive.LITERAL)).canBeConvertedTo(this))
+            throw new SemanticError("Type " + this + " is not arithmetic.",
+                    arithmeticNode, expr);
     }
 
     private boolean canBeConvertedTo(Type t) {
-        if (type == Primitive.ARRAY) {
-            return t.type    == Primitive.ARRAY
-                && t.of.type == of.type;
-        }
-        if (type == t.type) return true;
-        if (type == Primitive.LITERAL &&
-            isIntegral(t.type)) return true;
+        if (equals(t)) return true;
+        if (isVector() && t.isPointer() && of.equals(t.of)) return true;
+        if (isIntegral() && t.isIntegral()) return true;
+        if (type == Primitive.CHAR && t.type == Primitive.INT) return true;
         return false;
     }
 
-    private boolean isIntegral(Primitive p) {
-        switch (p) {
+    private boolean isIntegral() {
+        switch (type) {
             case INT: case CHAR: case LITERAL: return true;
             default: return false;
         }
+    }
+
+    /**
+     * @return True if the type is any indexable type
+     */
+    public boolean isIndexable() {
+        return type == Primitive.ARRAY;
+    }
+
+    /**
+     * @return True if the type is a pointer type
+     */
+    public boolean isPointer() {
+        return type==Primitive.ARRAY && size == null;
+    }
+
+    /**
+     * @return True if the type is an in-place array (i.e. it has a size)
+     */
+    public boolean isVector() {
+        return type==Primitive.ARRAY && size != null;
+    }
+
+    public boolean isVoid() {
+        return type == Primitive.VOID;
     }
 
     /**
@@ -119,7 +164,9 @@ public class Type {
         if (!(b instanceof Type)) return false;
         Type t = (Type)b;
         if (type != t.type) return false;
-        return (type != Primitive.ARRAY || of.equals(t.of));
+        return (type != Primitive.ARRAY ||
+                (of.equals(t.of) && (size == null && t.size == null ||
+                                     size != null && size.equals(t.size))));
     }
 
     @Override

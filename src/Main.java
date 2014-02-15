@@ -16,8 +16,6 @@ public class Main {
             System.exit(0);
         }
         for (String file : arg) {
-            if (arg.length > 1)
-                System.out.println(file);
             InputStream is = new FileInputStream(file);
             UcParse parser = new UcParse(is);
 
@@ -30,9 +28,11 @@ public class Main {
                 semantic.start(tree);
                 continue;
             } catch (TokenMgrError lexicalError) {
+                System.err.println(SemanticError.ansiWhite + file + ": Lexical error." + SemanticError.ansiReset);
                 System.err.println(lexicalError.getMessage());
             } catch (ParseException parseError) {
-                System.err.println("Parse error: " + parseError.getMessage());
+                System.err.println(SemanticError.ansiWhite + file + ": Parse error." + SemanticError.ansiReset);
+                System.err.println(parseError.getMessage());
             } catch (SemanticError semanticError) {
                 semanticError.printNicely(file);
             }

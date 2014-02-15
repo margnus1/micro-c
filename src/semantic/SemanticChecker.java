@@ -8,6 +8,7 @@ import parser.*;
 public class SemanticChecker {
     public SemanticChecker() {};
     SymbolTable st = new SymbolTable();
+    FunctionType currentFunctionContext = null;
 
     public void start(SimpleNode root){
         for(int i=0; i < root.jjtGetNumChildren(); i++){
@@ -43,7 +44,7 @@ public class SemanticChecker {
         String name = (String)id.jjtGetValue();
 
         //insert into symbol table
-        st.addFunctionDefinition(name, funcDef);
+        currentFunctionContext = st.addFunctionDefinition(name, funcDef);
 
         //create a new Scope
         st.enterScope(funcDef.jjtGetChild(3));
@@ -56,9 +57,7 @@ public class SemanticChecker {
 
         //exit the scope
         st.exitScope();
-
-
-
+        currentFunctionContext = null;
     }
 
     public void checkFuncParams(SimpleNode funcParams){
@@ -186,11 +185,89 @@ public class SemanticChecker {
     }
 
     private void checkRetStmt(SimpleNode retStmt){
-
+        assert currentFunctionContext != null;
+        if (currentFunctionContext.getReturnType().isVoid()) {
+            if (retStmt.jjtGetNumChildren() != 0)
+                throw new SemanticError("Value returned from void function.",
+                        retStmt, currentFunctionContext.getNode());
+        } else {
+            if (retStmt.jjtGetNumChildren() != 1)
+                throw new SemanticError("Return from non-void function is missing a value.",
+                        retStmt, currentFunctionContext.getNode());
+            checkExpr(retStmt.jjtGetChild(0))
+                    .assertConvertibleTo(currentFunctionContext.getReturnType(), retStmt);
+        }
     }
 
-    private void checkExpr(SimpleNode expr){
+    private Type checkExpr(SimpleNode expr){
+        switch (expr.getId()) {
+            case UcParseTreeConstants.JJTASSIGNMENT:
+                return checkAssignment(expr);
+            case UcParseTreeConstants.JJTARRAYLOOKUP:
+                return checkArrayLookup(expr);
+            case UcParseTreeConstants.JJTIDENTIFIER:
+                return st.findVariable(expr);
+            case UcParseTreeConstants.JJTBINARY:
+                Type lhs = checkExpr(expr.jjtGetChild(0));
+                Type rhs = checkExpr(expr.jjtGetChild(1));
+                lhs.assertArithmetic(expr);
+                return lhs.unify(rhs, expr);
+            case UcParseTreeConstants.JJTUNARYEXPR:
+                Type t = checkExpr(expr.jjtGetChild(0));
+                t.assertArithmetic(expr);
+                return t;
+            case UcParseTreeConstants.JJTFUNCTIONCALL:
+                return checkFuncCall(expr);
+            case UcParseTreeConstants.JJTINTEGERLITERAL:
+                return new Type(expr);
+            default:
+                throw new RuntimeException("Unexpected " + expr + " in AST. Expected expression.");
+        }
         //expression can be an identifier
+    }
+
+    private Type checkFuncCall(SimpleNode expr) {
+        SimpleNode func = expr.jjtGetChild(0);
+        if (func.getId() != UcParseTreeConstants.JJTIDENTIFIER)
+            throw new SemanticError("A function must be an identifier.", func);
+        FunctionType ft = st.findFunction((String)func.jjtGetValue(), func);
+
+        SimpleNode args = expr.jjtGetChild(1);
+        if (args.jjtGetNumChildren() != ft.getArgumentTypes().length)
+            throw new SemanticError("Wrong number of arguments in call to function " + func.jjtGetValue() + ".",
+                    expr, ft.getNode());
+        for (int i = 0; i < args.jjtGetNumChildren(); i++)
+            checkExpr(args.jjtGetChild(i)).assertConvertibleTo(ft.getArgumentTypes()[i], args.jjtGetChild(i));
+
+        return new Type(ft.getReturnType(), expr);
+    }
+
+    private Type checkAssignment(SimpleNode expr) {
+        Type lhs = checkAssignable(expr.jjtGetChild(0));
+        Type rhs = checkExpr(expr.jjtGetChild(1));
+        rhs.assertConvertibleTo(lhs, expr);
+        return lhs;
+    }
+
+    private Type checkAssignable(SimpleNode simpleNode) {
+        switch (simpleNode.getId()) {
+            case UcParseTreeConstants.JJTIDENTIFIER:
+                Type t = st.findVariable(simpleNode);
+                if (t.isVector()) throw new SemanticError("You cannot assign to a vector.", simpleNode, t.getExpr());
+                return t;
+            case UcParseTreeConstants.JJTARRAYLOOKUP:
+                return checkArrayLookup(simpleNode);
+            default:
+                throw new SemanticError("Left hand side of assignment must be an identifier or array lookup.", simpleNode);
+        }
+    }
+
+    private Type checkArrayLookup(SimpleNode lookup) {
+        Type arrT = st.findVariable(lookup.jjtGetChild(0));
+        if (!arrT.isIndexable()) throw new SemanticError(arrT + " cannot be indexed.", lookup, arrT.getExpr());
+        Type ixT = checkExpr(lookup.jjtGetChild(1));
+        ixT.assertArithmetic(lookup);
+        return arrT.getElementType();
     }
 
 }

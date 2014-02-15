@@ -11,38 +11,36 @@ import java.lang.RuntimeException;
  */
 public class SemanticError extends RuntimeException {
     String message;
-    SimpleNode node1, node2;
-    public SemanticError(String message) {
-        this(message, null);
-    }
-    public SemanticError(String message, SimpleNode node) {
-        this(message, node, null);
-    }
-    public SemanticError(String message, SimpleNode node1, SimpleNode node2) {
+    SimpleNode errorNode;
+    SimpleNode[] infoNodes;
+    public SemanticError(String message, SimpleNode errorNode, SimpleNode... infoNodes) {
         super("Semantic error: " + message);
+        if (errorNode == null) throw new IllegalArgumentException("The node cannot be null");
         this.message = message;
-        this.node1 = node1;
-        this.node2 = node2;
+        this.errorNode = errorNode;
+        this.infoNodes = infoNodes;
     }
 
     private static boolean hasAnsi = !System.getProperty("os.name").startsWith("Windows");
-    private static final String ansiWhite = hasAnsi ? "\u001B[1m\u001B[37m" : "";
-    private static final String ansiRed   = hasAnsi ? "\u001B[1m\u001b[31m" : "";
-    private static final String ansiGreen = hasAnsi ? "\u001B[1m\u001b[32m" : "";
-    private static final String ansiReset = hasAnsi ? "\u001b[0m"           : "";
+    public static final String ansiWhite = hasAnsi ? "\u001B[1m\u001B[37m" : "";
+    public static final String ansiRed   = hasAnsi ? "\u001B[1m\u001b[31m" : "";
+    public static final String ansiGreen = hasAnsi ? "\u001B[1m\u001b[32m" : "";
+    public static final String ansiReset = hasAnsi ? "\u001b[0m"           : "";
 
     /**
-     * Pretty-prints this error to std-out
+     * Pretty-prints this error to std-err
      * @param file The file name to specify in the error message
      */
     public void printNicely(String file) {
-        System.out.println(ansiWhite + formatPosition(file, node1)
+        System.err.println(ansiWhite + (errorNode == null ? "" : formatPosition(file, errorNode))
                     + ansiRed + " error: " + ansiWhite + message + ansiReset);
-        printHighlighted(node1, readLine(file, node1.jjtGetFirstToken().beginLine - 1));
-        if (node2 != null) {
-            System.out.println(ansiWhite + formatPosition(file, node2) + ansiReset);
-            printHighlighted(node2, readLine(file, node2.jjtGetFirstToken().beginLine - 1));
-        }
+        if (errorNode != null)
+            printHighlighted(errorNode, readLine(file, errorNode.jjtGetFirstToken().beginLine - 1));
+        for (SimpleNode node : infoNodes)
+            if (node != null) {
+                System.out.println(ansiWhite + formatPosition(file, node) + ansiReset);
+                printHighlighted(node, readLine(file, node.jjtGetFirstToken().beginLine - 1));
+            }
     }
 
     private String formatPosition(String file, SimpleNode node) {
@@ -53,7 +51,7 @@ public class SemanticError extends RuntimeException {
     }
 
     private void printHighlighted(SimpleNode node, String line) {
-        System.out.println(line);
+        System.err.println(line);
         StringBuilder underline = new StringBuilder();
         int beginColumn = node.jjtGetFirstToken().beginColumn - 1;
         for (int count = 0; count < beginColumn; count++)
@@ -67,7 +65,7 @@ public class SemanticError extends RuntimeException {
              underline.append('~');
         if (node.jjtGetFirstToken().beginLine < node.jjtGetLastToken().endLine)
             underline.append("...");
-        System.out.println(ansiGreen + underline + ansiReset);
+        System.err.println(ansiGreen + underline + ansiReset);
     }
 
     private String readLine(String file, int number) {
