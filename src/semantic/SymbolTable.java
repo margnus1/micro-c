@@ -11,7 +11,6 @@ import parser.*;
 public class SymbolTable {
     private List<Map<String,Type>> varTable;
     private Map<String,FunctionType> funcTable;
-    private FunctionType lastDefinedFunction;
 
     public SymbolTable(){
         varTable = new ArrayList<Map<String,Type>>();
@@ -33,15 +32,10 @@ public class SymbolTable {
     }
 
 
-    public Type findVariable(String name, SimpleNode node){
-
-        int lastIdx = varTable.size()-1;
-        for(int i = lastIdx; i>=0; i--){
-            Map<String,Type> currentScope = varTable.get(i);
-            if(currentScope.containsKey(name)){
-                return currentScope.get(name);
-            }
-        }
+    public Type findVariable(SimpleNode node){
+        String name = (String)node.jjtGetValue();
+        Type var = lookupVariable(name);
+        if (var != null) return var;
 
         //need throw an exception VariableCannotBeFound?
         throw new SemanticError("Variable Definition Cannot Be Found", node);
@@ -49,7 +43,7 @@ public class SymbolTable {
 
     public FunctionType findFunction(String name, SimpleNode node){
 
-        if(checkScope(name)){
+        if(lookupVariable(name) != null){
             throw new SemanticError("Function is invisible from current scope",node);
         }
 
@@ -107,16 +101,6 @@ public class SymbolTable {
             funcTable.put(name, type);
         }
     }
-//
-//    public void addFunction(String name, SimpleNode node){
-//        if(funcTable.containsKey(name) || varTable.get(0).containsKey(name)){
-//            throw new SemanticError("Function with the same name already exists", node);
-//        }
-//            FunctionType funcType = new FunctionType(node);
-//                funcTable.put(name, funcType);
-//                lastDefinedFunction = funcType;
-//    }
-
 
     public FunctionType addFunctionDefinition(String name, SimpleNode node) {
         assert(funcTable.containsKey(name));
@@ -127,22 +111,19 @@ public class SymbolTable {
         declaration.setDefinition(node);
         return declaration;
     }
-    
-    public boolean checkScope(String name){
-        //check whether the symbol has already existed
 
-//        if(funcTable.containsKey(name)){
-//            return true;
-//        }
-
-
-        for(Map m : varTable){
-            if(m.containsKey(name)){
-                return true;
+    /**
+     * Looks up a variable by name, returning null if it's not found.
+     */
+    private Type lookupVariable(String name){
+        int lastIdx = varTable.size()-1;
+        for(int i = lastIdx; i>=0; i--){
+            Map<String,Type> currentScope = varTable.get(i);
+            if(currentScope.containsKey(name)){
+                return currentScope.get(name);
             }
         }
-
-        return false;
+        return null;
     }
 
     public void exitScope(){
@@ -158,9 +139,5 @@ public class SymbolTable {
         }
         sb.append(funcTable.toString()+"\n");
         return sb.toString();
-    }
-
-    public FunctionType getLatestFuncDef(){
-        return lastDefinedFunction;
     }
 }
