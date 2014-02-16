@@ -28,16 +28,16 @@ public class Main {
                 semantic.start(tree);
                 continue;
             } catch (TokenMgrError lexicalError) {
-                System.err.println(SemanticError.ansiWhite + file + ": Lexical error." + SemanticError.ansiReset);
+                SemanticError.printErrorHeader(file, null, "Lexical error.");
                 System.err.println(lexicalError.getMessage());
             } catch (ParseException parseError) {
-                System.err.println(SemanticError.ansiWhite + file + ": Parse error." + SemanticError.ansiReset);
-                System.err.println(parseError.getMessage());
+                SemanticError.printErrorHeader(file, null, "Parse error.");
+                System.err.print(parseError.getMessage());
             } catch (SemanticError semanticError) {
                 semanticError.printNicely(file);
             }
+            System.err.println();
             //System.exit(1);
-
         }
         System.exit(0);
     }

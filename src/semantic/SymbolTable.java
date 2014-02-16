@@ -20,8 +20,8 @@ public class SymbolTable {
         Map<String,Type> initVarScope = new HashMap<String,Type>();
 
         varTable.add(initVarScope);
-
     }
+
     public void enterScope(SimpleNode compoundStmt){
         //add a new set to the linked list
         Map<String,Type> newVarScope = new HashMap<String,Type>();
@@ -31,20 +31,22 @@ public class SymbolTable {
         compoundStmt.jjtSetValue(newVarScope);
     }
 
-
     public Type findVariable(SimpleNode node){
+        assert node.getId() == UcParseTreeConstants.JJTIDENTIFIER;
         String name = (String)node.jjtGetValue();
         Type var = lookupVariable(name);
         if (var != null) return var;
 
-        //need throw an exception VariableCannotBeFound?
-        throw new SemanticError("Variable Definition Cannot Be Found", node);
+        throw new SemanticError("Undefined variable.", node);
     }
 
-    public FunctionType findFunction(String name, SimpleNode node){
-
-        if(lookupVariable(name) != null){
-            throw new SemanticError("Function is invisible from current scope",node);
+    public FunctionType findFunction(SimpleNode node){
+        assert node.getId() == UcParseTreeConstants.JJTIDENTIFIER;
+        String name = (String)node.jjtGetValue();
+        Type varT = lookupVariable(name);
+        if(varT != null){
+            throw new SemanticError("Function " + name + " is shadowed by a local variable.",
+                    node, varT.getExpr());
         }
 
         if(funcTable.containsKey(name)){
@@ -67,7 +69,7 @@ public class SymbolTable {
                     node, funcTable.get(name).getNode());
         }
 
-        Type varType =  new Type(node);
+        Type varType = new Type(node);
         currentScope.put(name, varType);
         return varType;
     }
@@ -87,7 +89,10 @@ public class SymbolTable {
         }
     }
 
-    public void addFunctionDeclaration(String name, SimpleNode node){
+    public void addFunctionDeclaration(SimpleNode node){
+        assert node.getId() == UcParseTreeConstants.JJTFUNCTIONDECLARATION
+            || node.getId() == UcParseTreeConstants.JJTFUNCTIONDEFINITION;
+        String name = (String)node.jjtGetChild(1).jjtGetValue();
         FunctionType type = new FunctionType(node);
 
         if(funcTable.containsKey(name)) {
@@ -102,7 +107,9 @@ public class SymbolTable {
         }
     }
 
-    public FunctionType addFunctionDefinition(String name, SimpleNode node) {
+    public FunctionType addFunctionDefinition(SimpleNode node) {
+        assert node.getId() == UcParseTreeConstants.JJTFUNCTIONDEFINITION;
+        String name = (String)node.jjtGetChild(1).jjtGetValue();
         assert(funcTable.containsKey(name));
         FunctionType declaration = funcTable.get(name);
         if (declaration.getDefinition() != null)

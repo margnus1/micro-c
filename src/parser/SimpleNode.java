@@ -2,8 +2,9 @@
 /* JavaCCOptions:MULTI=false,NODE_USES_PARSER=false,VISITOR=true,TRACK_TOKENS=true,NODE_PREFIX=AST,NODE_EXTENDS=,NODE_FACTORY=,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
 package parser;
 
-public
-class SimpleNode implements Node {
+import java.util.Iterator;
+
+public class SimpleNode implements Node, Iterable<SimpleNode> {
 
   protected Node parent;
   protected Node[] children;
@@ -101,6 +102,30 @@ class SimpleNode implements Node {
   public int getId() {
       return id;
   }
+
+    @Override
+    public Iterator<SimpleNode> iterator() {
+        return new Iterator<SimpleNode>() {
+            int position = 0;
+            @Override
+            public boolean hasNext() {
+                return children != null &&
+                       position < children.length;
+            }
+
+            @Override
+            public SimpleNode next() {
+                if (children==null || position>=children.length)
+                    throw new IllegalStateException();
+                return (SimpleNode)children[position++];
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
 }
 
 /* JavaCC - OriginalChecksum=d411194ab33eec892789983b686ce503 (do not edit this line) */

@@ -15,42 +15,32 @@ public class SemanticChecker {
             SimpleNode child = root.jjtGetChild(i);
             switch (child.getId()){
                 case UcParseTreeConstants.JJTFUNCTIONDEFINITION:
-                    checkFuncDecl(child);
+                    st.addFunctionDeclaration(child);
                     checkFuncDef(child);
                     break;
                 case UcParseTreeConstants.JJTFUNCTIONDECLARATION:
-                    checkFuncDecl(child);
+                    st.addFunctionDeclaration(child);
                     break;
                 case UcParseTreeConstants.JJTVARIABLEDECLARATION:
                     st.addVariable(child);
                     break;
+                default:
+                    throw new RuntimeException("Unexpected node " + child + " in AST.");
             }
         }
     }
 
-    public void checkFuncDecl(SimpleNode funcDef) {
-        //get the second child, should be an identifier
-        SimpleNode id = funcDef.jjtGetChild(1);
-        String name = (String)id.jjtGetValue();
-        st.addFunctionDeclaration(name, funcDef);
-    }
-
     public void checkFuncDef(SimpleNode funcDef){
-
-        //get the second child, should be identifier
-        SimpleNode id = funcDef.jjtGetChild(1);
-
-        //get the name of the function
-        String name = (String)id.jjtGetValue();
-
         //insert into symbol table
-        currentFunctionContext = st.addFunctionDefinition(name, funcDef);
+        currentFunctionContext = st.addFunctionDefinition(funcDef);
 
         //create a new Scope
         st.enterScope(funcDef.jjtGetChild(3));
 
         //check FunctionParameters, the third child
-        checkFuncParams(funcDef.jjtGetChild(2));
+        //All children are VariableDeclaration-s
+        for(SimpleNode varDec : funcDef.jjtGetChild(2))
+            st.addVariable(varDec);
 
         //check CompoundStatement, the 4th child
         checkFuncCompStmt(funcDef.jjtGetChild(3));
@@ -60,39 +50,22 @@ public class SemanticChecker {
         currentFunctionContext = null;
     }
 
-    public void checkFuncParams(SimpleNode funcParams){
-        //only contains VariableDeclaration-s
-
-        for(int i=0; i< funcParams.jjtGetNumChildren(); i++){
-
-            SimpleNode varDec = funcParams.jjtGetChild(i);
-            st.addVariable(varDec);
-        }
-    }
-
+    /**
+     * Check a CompoundStatement, assuming that a new scope already has been created
+     */
     public void checkFuncCompStmt(SimpleNode compStmt){
-        //CompoundStatement within a FunctionDefinition
-        //the new Scope is created by checkFuncDef
-        //while the standalone CompoundStatement needs to created
-        //its own Scope
+        //For CompoundStatements within a FunctionDefinition,
+        //the new Scope is created by checkFuncDef,
+        //while the standalone CompoundStatements has their
+        //scopes created by checkCompStmt
 
-        //first child, variableDeclarations
-        SimpleNode varDecs = compStmt.jjtGetChild(0);
-
-        //deal with each varDec
-        for(int i=0; i< varDecs.jjtGetNumChildren(); i++){
-            SimpleNode varDec = varDecs.jjtGetChild(i);
+        //Add each variable in the first child, VariableDeclarations
+        for(SimpleNode varDec : compStmt.jjtGetChild(0))
             st.addVariable(varDec);
-        }
 
-
-        //second child, statements
-        SimpleNode stmts = compStmt.jjtGetChild(1);
-        for(int i =0; i < stmts.jjtGetNumChildren(); i++){
-            SimpleNode stmt = stmts.jjtGetChild(i);
+        //second child, Statements
+        for(SimpleNode stmt : compStmt.jjtGetChild(1))
             checkStmt(stmt);
-        }
-
     }
 
     //check the standalone Compound Statements
@@ -120,9 +93,6 @@ public class SemanticChecker {
             case UcParseTreeConstants.JJTWHILESTATEMENT:
                 checkWhileStmt(stmt);
                 break;
-//            case UcParseTreeConstants.JJTCOMPOUNDSTATEMENT:
-//                checkCompStmt(stmt,st);
-//                break;
             case UcParseTreeConstants.JJTSIMPLECOMPOUNDSTATEMENT:
                 //to be checked?: stmt can only have SimpleCompoundStatement
                 checkSimpleCompStmt(stmt);
@@ -171,10 +141,8 @@ public class SemanticChecker {
         //create a new scope
         st.enterScope(simpleCompStmt);
 
-        for(int i =0; i < simpleCompStmt.jjtGetNumChildren(); i++){
-            SimpleNode stmt = simpleCompStmt.jjtGetChild(i);
+        for(SimpleNode stmt : simpleCompStmt)
             checkStmt(stmt);
-        }
 
         //exit the scope
         st.exitScope();
@@ -253,7 +221,7 @@ public class SemanticChecker {
     private Type checkArrayLookup(SimpleNode arrayLookup){
         // lookup never checks whether a lookup is within bounds in C,
         // some compilers issue warnings when the index is a literal our of bounds.
-        Type arrT = st.findVariable(arrayLookup);
+        Type arrT = st.findVariable(arrayLookup.jjtGetChild(0));
         if(!arrT.isIndexable())
             throw new SemanticError(arrT + " cannot be indexed.", arrayLookup, arrT.getExpr());
 
@@ -267,7 +235,7 @@ public class SemanticChecker {
         SimpleNode func = expr.jjtGetChild(0);
         if (func.getId() != UcParseTreeConstants.JJTIDENTIFIER)
             throw new SemanticError("A function must be an identifier.", func);
-        FunctionType ft = st.findFunction((String)func.jjtGetValue(), func);
+        FunctionType ft = st.findFunction(func);
 
         SimpleNode args = expr.jjtGetChild(1);
         if (args.jjtGetNumChildren() != ft.getArgumentTypes().length)

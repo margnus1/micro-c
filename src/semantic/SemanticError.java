@@ -32,8 +32,7 @@ public class SemanticError extends RuntimeException {
      * @param file The file name to specify in the error message
      */
     public void printNicely(String file) {
-        System.err.println(ansiWhite + (errorNode == null ? "" : formatPosition(file, errorNode))
-                    + ansiRed + " error: " + ansiWhite + message + ansiReset);
+        printErrorHeader(file, errorNode, message);
         if (errorNode != null)
             printHighlighted(errorNode, readLine(file, errorNode.jjtGetFirstToken().beginLine - 1));
         for (SimpleNode node : infoNodes)
@@ -43,11 +42,16 @@ public class SemanticError extends RuntimeException {
             }
     }
 
-    private String formatPosition(String file, SimpleNode node) {
+    public static void printErrorHeader(String file, SimpleNode position, String message) {
+        System.err.println(ansiWhite + formatPosition(file, position)
+                + ansiRed + " error: " + ansiWhite + message + ansiReset);
+    }
+
+    private static String formatPosition(String file, SimpleNode node) {
         String[] parts = file.split("[/\\\\]");
         String name = parts[parts.length-1];
-        return name + ":" + node.jjtGetFirstToken().beginLine + ":"
-                + node.jjtGetFirstToken().beginColumn + ":";
+        return name + ":" + (node == null ? "" : node.jjtGetFirstToken().beginLine + ":"
+                + node.jjtGetFirstToken().beginColumn + ":");
     }
 
     private void printHighlighted(SimpleNode node, String line) {
