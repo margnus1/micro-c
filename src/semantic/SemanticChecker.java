@@ -153,11 +153,11 @@ public class SemanticChecker {
         if (currentFunctionContext.getReturnType().isVoid()) {
             if (retStmt.jjtGetNumChildren() != 0)
                 throw new SemanticError("Value returned from void function.",
-                        retStmt, currentFunctionContext.getNode());
+                        retStmt, currentFunctionContext.getReturnType().getExpr());
         } else {
             if (retStmt.jjtGetNumChildren() != 1)
                 throw new SemanticError("Return from non-void function is missing a value.",
-                        retStmt, currentFunctionContext.getNode());
+                        retStmt, currentFunctionContext.getReturnType().getExpr());
             checkExpr(retStmt.jjtGetChild(0))
                     .assertConvertibleTo(currentFunctionContext.getReturnType(), retStmt);
         }
@@ -244,6 +244,6 @@ public class SemanticChecker {
         for (int i = 0; i < args.jjtGetNumChildren(); i++)
             checkExpr(args.jjtGetChild(i)).assertConvertibleTo(ft.getArgumentTypes()[i], args.jjtGetChild(i));
 
-        return new Type(ft.getReturnType(), expr);
+        return ft.getReturnType();
     }
 }

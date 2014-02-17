@@ -53,7 +53,7 @@ public class SymbolTable {
             return funcTable.get(name);
         }
 
-        throw new SemanticError("Function Definition Cannot Be Found", node);
+        throw new SemanticError("Undefined function.", node);
     }
 
     public Type addVariable(SimpleNode node){
