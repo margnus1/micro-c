@@ -1,6 +1,6 @@
 import parser.*;
 import semantic.SemanticChecker;
-import semantic.SemanticError;
+import utils.CompileError;
 
 import java.io.*;
 
@@ -27,14 +27,8 @@ public class Main {
                 SemanticChecker semantic = new SemanticChecker();
                 semantic.start(tree);
                 continue;
-            } catch (TokenMgrError lexicalError) {
-                SemanticError.printErrorHeader(file, null, "Lexical error.");
-                System.err.println(lexicalError.getMessage());
-            } catch (ParseException parseError) {
-                SemanticError.printErrorHeader(file, null, "Parse error.");
-                System.err.print(parseError.getMessage());
-            } catch (SemanticError semanticError) {
-                semanticError.printNicely(file);
+            } catch (CompileError error) {
+                error.printNicely(file);
             }
             System.err.println();
             //System.exit(1);
