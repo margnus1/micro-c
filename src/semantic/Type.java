@@ -85,7 +85,7 @@ public class Type {
      */
     public void assertConvertibleTo(Type t, SimpleNode convertingNode) {
         if (!(this.canBeConvertedTo(t)))
-            throw new SemanticError(this + " can't be converted to a " + t + ".",
+            throw new SemanticError(this + " can't be converted to " + t + ".",
                     convertingNode, this.expr, t.expr);
     }
 

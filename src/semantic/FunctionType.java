@@ -24,7 +24,7 @@ public class FunctionType {
         for (int i = 0; i < argumentTypes.length; i++) {
             argumentTypes[i] = new Type(args.jjtGetChild(i));
             if (argumentTypes[i].hasSize())
-                throw new SemanticError("An array function formal may not have a size.", args.jjtGetChild(i));
+                throw new SemanticError("An array formal may not have a size.", args.jjtGetChild(i));
         }
     }
 
