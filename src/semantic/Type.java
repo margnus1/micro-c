@@ -148,7 +148,7 @@ public class Type {
     public Type unify(Type other, SimpleNode expressionThatUnifies) {
         if (this.canBeConvertedTo(other)) return new Type(other, expressionThatUnifies);
         if (other.canBeConvertedTo(this)) return new Type(this,  expressionThatUnifies);
-        throw new SemanticError("Types " + this + " and " + other + " are not unifiable", this.expr, other.expr);
+        throw new SemanticError("Types " + this + " and " + other + " are not unifiable.", this.expr, other.expr);
     }
 
     public SimpleNode getExpr() {
