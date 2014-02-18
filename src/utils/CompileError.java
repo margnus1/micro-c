@@ -9,10 +9,11 @@ import java.io.IOException;
  */
 public abstract class CompileError extends RuntimeException {
     private static boolean hasAnsi = !System.getProperty("os.name").startsWith("Windows");
-    public static final String ansiWhite = hasAnsi ? "\u001B[1m\u001B[37m" : "";
-    public static final String ansiRed   = hasAnsi ? "\u001B[1m\u001b[31m" : "";
-    public static final String ansiGreen = hasAnsi ? "\u001B[1m\u001b[32m" : "";
-    public static final String ansiReset = hasAnsi ? "\u001b[0m"           : "";
+    public static final String ansiBold              = hasAnsi ? "\u001B[1m"  : "";
+    public static final String ansiRed               = hasAnsi ? "\u001b[31m" : "";
+    public static final String ansiGreen             = hasAnsi ? "\u001b[32m" : "";
+    public static final String ansiDefaultForeground = hasAnsi ? "\u001b[39m" : "";
+    public static final String ansiReset             = hasAnsi ? "\u001b[0m"  : "";
 
     private Position error;
     private String infoMessage;
@@ -26,8 +27,8 @@ public abstract class CompileError extends RuntimeException {
     }
 
     public static void printErrorHeader(String file, Position position, String message) {
-        System.err.println(ansiWhite + formatPosition(file, position)
-                + ansiRed + " error: " + ansiWhite + message + ansiReset);
+        System.err.println(ansiBold + formatPosition(file, position)
+                + ansiRed + " error: " + ansiDefaultForeground + message + ansiReset);
     }
 
     private static String formatPosition(String file, Position pos) {
@@ -48,7 +49,7 @@ public abstract class CompileError extends RuntimeException {
             System.err.println(infoMessage);
         for (Position pos : infos)
             if (pos != null) {
-                System.out.println(ansiWhite + formatPosition(file, pos) + ansiReset);
+                System.out.println(ansiBold + formatPosition(file, pos) + ansiReset);
                 printHighlighted(pos, readLine(file, pos.beginLine - 1));
             }
     }
@@ -68,7 +69,7 @@ public abstract class CompileError extends RuntimeException {
              underline.append('~');
         if (pos.beginLine < pos.endLine)
             underline.append("...");
-        System.err.println(ansiGreen + underline + ansiReset);
+        System.err.println(ansiBold + ansiGreen + underline + ansiReset);
     }
 
     private static String readLine(String file, int number) {
