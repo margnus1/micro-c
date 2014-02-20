@@ -1,4 +1,0 @@
-package rtl;
-
-interface RtlDec { }
-    
