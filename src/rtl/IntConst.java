@@ -1,6 +1,6 @@
 package rtl;
 
-class IntConst {
+public class IntConst {
     private int dest;
     private int constVal;
 
@@ -12,15 +12,8 @@ class IntConst {
     public int getConstVal(){
         return constVal;
     }
-    public void setConstVal(int _val){
-        constVal =_val;
-    }
-
     public int getDest() {
         return dest;
-    }
-    public void setDest(int dest) {
-        this.dest = dest;
     }
 
     public String toString(){

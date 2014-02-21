@@ -1,6 +1,6 @@
 package rtl;
 
-class Load {
+public class Load {
     private int dest;
     private RtlType type;
     private int addr;
@@ -14,22 +14,11 @@ class Load {
     public RtlType getType (){
         return type;
     }
-    public void setType (RtlType type){
-        this.type = type;
-    }
-
     public int getAddr (){
         return addr;
     }
-    public void setAddr (int addr){
-        this.addr = addr;
-    }
-
     public int getDest (){
         return dest;
-    }
-    public void setDest (int dest){
-        this.dest = dest;
     }
 
     public String toString(){

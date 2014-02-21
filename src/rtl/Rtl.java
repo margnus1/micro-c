@@ -1,6 +1,6 @@
 package rtl;
 
-class Rtl {
+public class Rtl {
     public static final int RV = 0;
 
     public static int sizeOf(RtlType t) {

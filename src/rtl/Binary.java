@@ -1,6 +1,6 @@
 package rtl;
 
-class Binary {
+public class Binary {
     private int dest;
     private BinOp op;
     private int lhs;
@@ -16,29 +16,14 @@ class Binary {
     public int getDest() {
         return dest;
     }
-    public void setDest(int dest) {
-        this.dest = dest;
-    }
-
     public BinOp getOp (){
         return op;
     }
-    public void setOp (BinOp op){
-        this.op = op;
-    }
-
     public int getRhs(){
         return rhs;
     }
-    public void setRhs(int rhs){
-        this.rhs = rhs;
-    }
-
     public int getLhs(){
         return lhs;
-    }
-    public void setLhs(int lhs){
-        this.lhs = lhs;
     }
 
     public String toString(){

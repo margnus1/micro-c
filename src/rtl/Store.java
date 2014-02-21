@@ -1,6 +1,6 @@
 package rtl;
 
-class Store {
+public class Store {
     private int addr;
     private RtlType type;
     private int val;
@@ -14,22 +14,11 @@ class Store {
     public RtlType getType (){
         return type;
     }
-    public void setType (RtlType type){
-        this.type =type;
-    }
-
     public int getAddr (){
         return addr;
     }
-    public void setAddr (int addr){
-        this.addr =addr;
-    }
-
     public int getVal (){
         return val;
-    }
-    public void setVal (int val){
-        this.val =val;
     }
 
     public String toString(){

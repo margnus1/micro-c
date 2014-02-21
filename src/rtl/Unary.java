@@ -17,22 +17,11 @@ public class Unary {
     public int getDest() {
         return dest;
     }
-    public void setDest(int dest) {
-        this.dest = dest;
-    }
-
     public UnOp getOp() {
         return op;
     }
-    public void setOp(UnOp op) {
-        this.op = op;
-    }
-
     public int getArg() {
         return arg;
-    }
-    public void setArg(int arg) {
-        this.arg = arg;
     }
 
     @Override

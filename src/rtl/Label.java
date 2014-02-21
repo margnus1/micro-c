@@ -1,6 +1,6 @@
 package rtl;
 
-class Label {
+public class Label {
     private String name;
 
     public Label(String name){
@@ -9,10 +9,6 @@ class Label {
 
     public String getName(){
         return name;
-    }
-
-    public void setName(String name){
-        this.name = name;
     }
 
     public String toString(){

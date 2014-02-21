@@ -1,6 +1,6 @@
 package rtl;
 
-class Call {
+public class Call {
     private int dest;
     private String procName;
     private int[] args;
@@ -18,22 +18,11 @@ class Call {
     public int getDest(){
         return dest;
     }
-    public void setDest(int dest){
-        this.dest = dest;
-    }
-
     public String getProcName(){
         return procName;
     }
-    public void setProcName(String procName){
-        this.procName = procName;
-    }
-
     public int[] getArgs (){
         return args;
-    }
-    public void setArgs (int[] args){
-        this.args = args;
     }
 
     public String toString(){

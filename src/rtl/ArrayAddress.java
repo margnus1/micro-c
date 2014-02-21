@@ -15,15 +15,8 @@ public class ArrayAddress {
     public int getDest() {
         return dest;
     }
-    public void setDest(int dest) {
-        this.dest = dest;
-    }
-
     public int getOffset() {
         return offset;
-    }
-    public void setOffset(int offset) {
-        this.offset = offset;
     }
 
     @Override
