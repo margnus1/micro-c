@@ -36,8 +36,8 @@ public class Proc {
 
     public String toString(){
         StringBuilder r = new StringBuilder("Procedure " + name + "\n");
-        r.append("  Argument count:" + argumentCount + "\n");
-        r.append("  Stack frame size:" + stackFrameSize + "\n");
+        r.append("  Argument count: " + argumentCount + "\n");
+        r.append("  Stack frame size: " + stackFrameSize + "\n");
 
         r.append("  Register types:\n");
         for (int i = 0; i < registerTypes.size(); i++) {
@@ -47,8 +47,8 @@ public class Proc {
         r.append("  Instructions:");
 
         for (Object ins : instructions) {
-            if (ins instanceof Label) r.append("\n  "+ins);
-            else r.append("\n    "+ins);
+            if (ins instanceof Label) r.append("\n    "+ins);
+            else r.append("\n      "+ins);
         }
         return r.toString();
     }

@@ -1,3 +1,3 @@
 package rtl;
 
-public enum RtlType { BYTE, INT}
+public enum RtlType { BYTE, INT }

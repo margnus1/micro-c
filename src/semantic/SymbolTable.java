@@ -57,7 +57,7 @@ public class SymbolTable {
     }
 
     public Type addVariable(SimpleNode node){
-        String name = getVarName(node);
+        String name = AST.getVarName(node);
         Map<String,Type> currentScope = varTable.get(varTable.size()-1);
 
         if(currentScope.containsKey(name)){
@@ -72,21 +72,6 @@ public class SymbolTable {
         Type varType = new Type(node);
         currentScope.put(name, varType);
         return varType;
-    }
-
-    private String getVarName(SimpleNode declaration) {
-        assert (declaration.getId() == UcParseTreeConstants.JJTVARIABLEDECLARATION);
-        // get the second child of variable declaration
-        // it is either an Identifier or ArrayDeclarator
-        SimpleNode secondChild = declaration.jjtGetChild(1);
-        switch (secondChild.getId()){
-            case UcParseTreeConstants.JJTIDENTIFIER:
-                return (String)secondChild.jjtGetValue();
-            case UcParseTreeConstants.JJTARRAYDECLARATOR:
-                return (String)secondChild.jjtGetChild(0).jjtGetValue();
-            default:
-                throw new RuntimeException("Invalid node in AST.");
-        }
     }
 
     public void addFunctionDeclaration(SimpleNode node){
@@ -136,6 +121,11 @@ public class SymbolTable {
     public void exitScope(){
         //remove the set at the end of the linked list
         varTable.remove(varTable.size()-1);
+    }
+
+    public Module toModule() {
+        assert varTable.size() == 1;
+        return new Module(varTable.get(0), funcTable);
     }
 
     public String toString(){

@@ -24,6 +24,6 @@ public class RegisterDispenser {
 
     public int createRegister(RtlType type) {
         registers.add(type);
-        return registers.size();
+        return registers.size()-1;
     }
 }

@@ -1,4 +1,5 @@
 import parser.*;
+import rtl.CodeGenerator;
 import semantic.SemanticChecker;
 import utils.CompileError;
 
@@ -16,22 +17,21 @@ public class Main {
             System.exit(0);
         }
         for (String file : arg) {
-            InputStream is = new FileInputStream(file);
-            UcParse parser = new UcParse(is);
+            try (InputStream is = new FileInputStream(file)) {
+                UcParse parser = new UcParse(is);
 
-            try {
                 SimpleNode tree = parser.Start();
                 tree.jjtAccept(new TokenRangeNormaliserVisitor(), null);
 
                 // tree.jjtAccept(new ASTPrinterVisitor(), "");
-                SemanticChecker semantic = new SemanticChecker();
-                semantic.start(tree);
-                continue;
+                semantic.Module ast = SemanticChecker.process(tree);
+                rtl.Module rtl = CodeGenerator.compileModule(ast);
+                System.out.print(rtl);
             } catch (CompileError error) {
                 error.printNicely(file);
+                System.err.println();
+                //System.exit(1);
             }
-            System.err.println();
-            //System.exit(1);
         }
         System.exit(0);
     }

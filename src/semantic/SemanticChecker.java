@@ -6,13 +6,18 @@ import parser.*;
  * Created by Doris on 14-2-13.
  */
 public class SemanticChecker {
-    public SemanticChecker() {};
+    private SemanticChecker() {}
     SymbolTable st = new SymbolTable();
     FunctionType currentFunctionContext = null;
 
+    public static Module process(SimpleNode root) {
+        SemanticChecker sc = new SemanticChecker();
+        sc.start(root);
+        return sc.st.toModule();
+    }
+
     public void start(SimpleNode root){
-        for(int i=0; i < root.jjtGetNumChildren(); i++){
-            SimpleNode child = root.jjtGetChild(i);
+        for(SimpleNode child : root){
             switch (child.getId()){
                 case UcParseTreeConstants.JJTFUNCTIONDEFINITION:
                     st.addFunctionDeclaration(child);

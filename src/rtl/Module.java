@@ -24,4 +24,16 @@ public class Module {
     public List<Proc> getProcedures() {
         return procedures;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        for (Map.Entry<String,Integer> glob : globals.entrySet()) {
+            b.append(glob.getKey()).append(": ").append(glob.getValue()).append('\n');
+        }
+        for (Proc p : procedures)
+            b.append(p.toString()).append("\n");
+
+        return b.toString();
+    }
 }
