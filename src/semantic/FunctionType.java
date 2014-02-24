@@ -68,4 +68,11 @@ public class FunctionType {
         tsBuilder.append(')');
         return tsBuilder.toString();
     }
+
+    public int getArgumentCount() {
+        return argumentTypes.length;
+    }
+    public Type getArgumentType(int index) {
+        return argumentTypes[index];
+    }
 }

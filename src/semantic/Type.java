@@ -1,6 +1,8 @@
 package semantic;
 import parser.SimpleNode;
 import parser.UcParseTreeConstants;
+import rtl.Proc;
+import rtl.RtlType;
 
 import java.lang.*;
 
@@ -137,6 +139,18 @@ public class Type {
 
     public boolean isVoid() {
         return type == Primitive.VOID;
+    }
+
+    public int getByteSize() {
+        if (type == Primitive.ARRAY && size != null)
+            return size * of.getByteSize();
+        if (type == Primitive.CHAR) return 1;
+        return 4;
+    }
+
+    public RtlType getRtlType() {
+        if (type == Primitive.CHAR) return RtlType.BYTE;
+        return RtlType.INT;
     }
 
     /**

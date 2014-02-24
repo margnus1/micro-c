@@ -1,6 +1,6 @@
 package rtl;
 
-enum RtlBinop { EQ, NE,
+public enum BinOp { EQ, NE,
         LT, GT, LTEQ, GTEQ, 
-        PLUS, MINUS,
+        ADD, SUB,
         MUL, DIV}

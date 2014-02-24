@@ -1,3 +1,0 @@
-package rtl;
-
-interface RtlInsn {}

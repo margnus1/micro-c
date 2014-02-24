@@ -1,42 +1,33 @@
 package rtl;
 
-class Binary implements RtlExp {
-    private RtlBinop op;
-    private int right;
-    private int left;
+public class Binary {
+    private int dest;
+    private BinOp op;
+    private int lhs;
+    private int rhs;
 
-    public Binary (RtlBinop _op, int _right, int _left){
-        op =_op;
-        right =_right;
-        left =_left;
+    public Binary (int dest, BinOp op, int lhs, int rhs){
+        this.dest = dest;
+        this.op   = op;
+        this.lhs  = lhs;
+        this.rhs  = rhs;
     }
 
-    public RtlBinop getOp (){
+    public int getDest() {
+        return dest;
+    }
+    public BinOp getOp (){
         return op;
     }
-
-    public void setOp (RtlBinop _op){
-        op =_op;
+    public int getRhs(){
+        return rhs;
     }
-
-    public int getRight (){
-        return right;
-    }
-
-    public void setRight (int _right){
-        right =_right;
-    }
-
-    public int getLeft (){
-        return left;
-    }
-
-    public void setLeft (int _left){
-        left =_left;
+    public int getLhs(){
+        return lhs;
     }
 
     public String toString(){
-        return "binary" + "(" + op + " " + Rtl.regToString(right)
-            + " " + Rtl.regToString(left) + ")";
-    };
+        return Rtl.regToString(dest) + " <- " + op + " " +
+                Rtl.regToString(lhs) + ", " + Rtl.regToString(rhs);
+    }
 }

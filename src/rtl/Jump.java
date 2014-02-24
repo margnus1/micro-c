@@ -1,21 +1,17 @@
 package rtl;
 
-class Jump implements RtlInsn {
-    private String label;
+public class Jump {
+    private String labelName;
 
-    public Jump (String _label){
-        label =_label;
+    public Jump (String labelName){
+        this.labelName = labelName;
     }
 
-    public String getLabel (){
-        return label;
-    }
-
-    public void setLabel (String _label){
-        label =_label;
+    public String getLabelName(){
+        return labelName;
     }
 
     public String toString(){
-        return "jump" + "(" + label + ")";
-    };
+        return "Jump" + " " + labelName;
+    }
 }

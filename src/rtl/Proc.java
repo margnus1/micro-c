@@ -1,86 +1,55 @@
 package rtl;
 import java.util.*;
 
-class Proc implements RtlDec {
-    private String label;
-    private List<Integer> formals;
-    private List<Integer> locals;
-    private int frame;
-    private List<RtlInsn> insns;
+public class Proc {
+    private String name;
+    private int argumentCount;
+    private List<RtlType> registerTypes;
+    private int stackFrameSize;
+    private List<Object> instructions;
 
-    public Proc (String _label, List<Integer> _formals, 
-                 List<Integer> _locals, int _frame, 
-                 List<RtlInsn> _insns){
-        label =_label;
-        formals =_formals;
-        locals =_locals;
-        frame =_frame;
-        insns =_insns;
+    public Proc (String name, int argumentCount,
+                 List<RtlType> registerTypes, int stackFrameSize,
+                 List<Object> instructions){
+        this.name = name;
+        this.argumentCount = argumentCount;
+        this.registerTypes = Collections.unmodifiableList(registerTypes);
+        this.stackFrameSize = stackFrameSize;
+        this.instructions = Collections.unmodifiableList(instructions);
     }
 
-    public String getLabel (){
-        return label;
+    public String getName(){
+        return name;
     }
-
-    public void setLabel (String _label){
-        label =_label;
+    public int getArgumentCount() {
+        return argumentCount;
     }
-
-    public List<Integer> getFormals (){
-        return formals;
+    public List<RtlType> getRegisterTypes() {
+        return registerTypes;
     }
-
-    public void setFormals (List<Integer> _formals){
-        formals =_formals;
+    public int getStackFrameSize(){
+        return stackFrameSize;
     }
-
-    public List<Integer> getLocals (){
-        return locals;
-    }
-
-    public void setLocals (List<Integer> _locals){
-        locals =_locals;
-    }
-
-    public int getFrame (){
-        return frame;
-    }
-
-    public void setFrame (int _frame){
-        frame =_frame;
-    }
-
-    public List<RtlInsn> getInsns (){
-        return insns;
-    }
-
-    public void setInsns (List<RtlInsn> _insns){
-        insns =_insns;
+    public List<Object> getInstructions(){
+        return instructions;
     }
 
     public String toString(){
-        StringBuffer r = new StringBuffer("\nproc" + " " + label + " ");
+        StringBuilder r = new StringBuilder("Procedure " + name + "\n");
+        r.append("  Argument count: " + argumentCount + "\n");
+        r.append("  Stack frame size: " + stackFrameSize + "\n");
 
-        r.append("\n formals: ["); 
-
-        for (int formal : formals) {
-            r.append(Rtl.regToString(formal));
+        r.append("  Register types:\n");
+        for (int i = 0; i < registerTypes.size(); i++) {
+            r.append("    " + Rtl.regToString(i) + ": " + registerTypes.get(i) + "\n");
         }
 
-        r.append("]\n locals: [");
+        r.append("  Instructions:");
 
-        for (int local : locals) {
-            r.append(Rtl.regToString(local));
+        for (Object ins : instructions) {
+            if (ins instanceof Label) r.append("\n    "+ins);
+            else r.append("\n      "+ins);
         }
-
-
-        r.append("]\n frame: "+frame);
-
-        for (RtlInsn insn : insns) {
-            if (insn instanceof LabDef) r.append("\n"+insn);
-            else r.append("\n    "+insn);
-        }
-        return new String(r);
-    };
+        return r.toString();
+    }
 }
-

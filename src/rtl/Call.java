@@ -1,49 +1,39 @@
 package rtl;
 
-import java.util.*;
+public class Call {
+    private int dest;
+    private String procName;
+    private int[] args;
 
-class Call implements RtlInsn {
-    private Integer temp;
-    private String label;
-    private List<Integer> args;
-
-    public Call (Integer _temp, String _label, List<Integer> _args){
-        temp =_temp;
-        label =_label;
-        args =_args;
+    public Call(String procName, int[] args) {
+        this(-1, procName, args);
     }
 
-    public Integer getTemp (){
-        return temp;
+    public Call (int dest, String procName, int[] arg){
+        this.dest = dest;
+        this.procName = procName;
+        this.args = arg;
     }
 
-    public void setTemp (Integer _temp){
-        temp =_temp;
+    public int getDest(){
+        return dest;
     }
-
-    public String getLabel (){
-        return label;
+    public String getProcName(){
+        return procName;
     }
-
-    public void setLabel (String _label){
-        label =_label;
-    }
-
-    public List<Integer> getArgs (){
+    public int[] getArgs (){
         return args;
     }
 
-    public void setArgs (List<Integer> _args){
-        args =_args;
-    }
-
     public String toString(){
-        StringBuffer printArgs = new StringBuffer();
-        for (int arg : args) {
-            printArgs.append(Rtl.regToString(arg));
+        StringBuffer string = new StringBuffer();
+        if (dest != -1) string.append(Rtl.regToString(dest)).append(" <- ");
+        string.append("Call ").append(procName);
+        for (int i = 0; i < args.length; i++) {
+            if (i != 0) string.append(", "); else string.append(" ");
+            string.append(Rtl.regToString(args[i]));
         }
 
-        return "call" + "(" + Rtl.regToString(temp) + " " + 
-            label + " " + printArgs + ")";
+        return string.toString();
     }
 }
