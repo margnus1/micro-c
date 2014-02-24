@@ -48,6 +48,7 @@ Statements
 	IntegerLiteral
 	Identifier
 	ArrayLookup
+	FunctionCall
 
 IfStatement
 	#Expression
@@ -86,5 +87,12 @@ ArrayLookup
 	for left-associative operators, we use EBNF expressions
 	for right-associative operators, we use right recursion to build corresponding nodes.
 
+
+
+void BaseType() : {}
+{ <CHAR> {jjtThis.value = Type.CHAR;}
+| <INT>  {jjtThis.value = Type.INT;}
+| <VOID> {jjtThis.value = Type.VOID;}
+}
 
 
