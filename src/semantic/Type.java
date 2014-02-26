@@ -105,7 +105,6 @@ public class Type {
         if (equals(t)) return true;
         if (isVector() && t.isPointer() && of.equals(t.of)) return true;
         if (isIntegral() && t.isIntegral()) return true;
-        if (type == Primitive.CHAR && t.type == Primitive.INT) return true;
         return false;
     }
 
