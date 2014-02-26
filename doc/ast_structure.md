@@ -51,6 +51,7 @@ All AST Node Types
         IntegerLiteral
         Identifier
         ArrayLookup
+        FunctionCall
 
     IfStatement
         #Expression
@@ -66,11 +67,11 @@ All AST Node Types
     ReturnStatement
         #Expression (?)
 
-    Binary
+    Binary (value is parser.Binop)
         #Expression
         #Expression
 
-    Unary
+    Unary (value is parser.Unop)
         #Expression
 
     Assignment
@@ -81,6 +82,11 @@ All AST Node Types
         Identifier
         #Expression
 
+    Identifier (value is String)
+
+    BaseType (value is parser.Type)
+
+    IntegerLiteral (value is Integer)
 
 --------
     sample for precedence
@@ -88,6 +94,4 @@ All AST Node Types
 ----------
     for left-associative operators, we use EBNF expressions
     for right-associative operators, we use right recursion to build corresponding nodes.
-
-
 
