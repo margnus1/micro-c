@@ -9,7 +9,8 @@
 \usepackage{amsmath}
 \usepackage{multicol}
 \usepackage{listings}
-
+\usepackage{alltt}
+\usepackage[lighttt]{lmodern}
 
 \title{Assignment 3: Semantic Analysis \\
        Compiler Design Project, 1DL420}
@@ -201,6 +202,37 @@ and any number of context information positions.
 
 Below is a sample of the error messages generated for the provided testcases.
 
-%TODO: This
+\begin{alltt}
+# java Main incorrect/semantic/se14.c
+\textbf{se14.c:12:3: \textcolor{red}{error:} Function f is shadowed by a local variable.}
+  f(n);         // 'f' refers only to the local variable
+\textbf{\color{green}  ^}
+\textbf{se14.c:9:3:}
+  int f;
+\textbf{\color{green}  ^~~~~}
+\end{alltt}
+
+\begin{alltt}
+# java Main incorrect/semantic/se20.c
+\textbf{se20.c:7:3: \textcolor{red}{error:} You cannot assign to a vector.}
+  a=b;
+\textbf{\color{green}  ^~~}
+\textbf{se20.c:5:3:}
+  int a[10];
+\textbf{\color{green}  ^~~~~~~~~}
+\end{alltt}
+
+\begin{alltt}
+# java Main incorrect/semantic/se21.c
+\textbf{se21.c:5:12: \textcolor{red}{error:} char[10] can't be converted to int.}
+    return bv;  //  Return from function with erroneous type
+\textbf{\color{green}           ^~~}
+\textbf{se21.c:4:3:}
+  char bv[10];
+\textbf{\color{green}  ^~~~~~~~~~~}
+\textbf{se21.c:3:1:}
+int a(int n) \symbol{123}
+\textbf{\color{green}^~~}
+\end{alltt}
 
 \end{document}
