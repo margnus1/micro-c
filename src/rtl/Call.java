@@ -9,10 +9,10 @@ public class Call {
         this(-1, procName, args);
     }
 
-    public Call (int dest, String procName, int[] arg){
+    public Call (int dest, String procName, int[] args){
         this.dest = dest;
         this.procName = procName;
-        this.args = arg;
+        this.args = args;
     }
 
     public int getDest(){

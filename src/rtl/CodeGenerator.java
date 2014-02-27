@@ -1,10 +1,7 @@
 package rtl;
 
 import org.omg.CORBA.portable.ApplicationException;
-import parser.AST;
-import parser.Binop;
-import parser.SimpleNode;
-import parser.UcParseTreeConstants;
+import parser.*;
 import semantic.FunctionType;
 import semantic.Type;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -109,13 +106,17 @@ public class CodeGenerator {
         private void generateStatement(SimpleNode statement) {
             switch (statement.getId()) {
                 case UcParseTreeConstants.JJTIFSTATEMENT:
-                    throw new NotImplementedException();
+                    generateIfStatement(statement);
+                    break;
                 case UcParseTreeConstants.JJTEMPTYSTATEMENT:
                     break; // Nothing to do!
                 case UcParseTreeConstants.JJTWHILESTATEMENT:
-                    throw new NotImplementedException();
+                    generateWhileStatement(statement);
+                    break;
                 case UcParseTreeConstants.JJTSIMPLECOMPOUNDSTATEMENT:
-                    throw new NotImplementedException();
+                    for(SimpleNode stmt : statement)
+                        generateStatement(stmt);
+                    break;
                 case UcParseTreeConstants.JJTRETURNSTATEMENT:
                     if (statement.jjtGetNumChildren() == 1)
                         instructions.add(new Unary(Rtl.RV, UnOp.Mov,
@@ -125,6 +126,46 @@ public class CodeGenerator {
                 default:
                     generateExpression(statement);
             }
+        }
+
+        private void generateWhileStatement(SimpleNode statement) {
+            String condLabel = labels.createLabel("while_cond");
+            String loopLabel = labels.createLabel("while_loop");
+
+            instructions.add(new Jump(condLabel));
+            instructions.add(new Label(loopLabel));
+            generateStatement(statement.jjtGetChild(1));
+            instructions.add(new Label(condLabel));
+            int condReg = generateExpression(statement.jjtGetChild(0));
+            instructions.add(new Branch(loopLabel,BranchMode.NonZero,condReg));
+        }
+
+        private void generateIfStatement(SimpleNode statement) {
+            int numOfChild = statement.jjtGetNumChildren();
+
+            int condReg = generateExpression(statement.jjtGetChild(0));
+
+            String endIfLabel = labels.createLabel("end_if");
+
+
+            if(numOfChild == 2){
+                instructions.add(new Branch(endIfLabel, BranchMode.Zero,condReg));
+
+                generateStatement(statement.jjtGetChild(1));
+
+
+            }else{
+                String elseLabel = labels.createLabel("else");
+                instructions.add(new Branch(elseLabel,BranchMode.Zero,condReg));
+                generateStatement(statement.jjtGetChild(1));
+                instructions.add(new Jump(endIfLabel));
+
+                instructions.add(new Label(elseLabel));
+                generateStatement(statement.jjtGetChild(2));
+
+            }
+
+            instructions.add(new Label(endIfLabel));
         }
 
         /**
@@ -145,8 +186,21 @@ public class CodeGenerator {
                 case UcParseTreeConstants.JJTBINARY:
                     resultReg = registers.createRegister(RtlType.INT);
                     int lhs = generateExpression(expression.jjtGetChild(0));
-                    int rhs = generateExpression(expression.jjtGetChild(1));
-                    instructions.add(new Binary(resultReg,((Binop)expression.jjtGetValue()).getRTLBinop(),lhs,rhs));
+
+                    Binop binOp = (Binop)expression.jjtGetValue();
+                    if(binOp == Binop.ANDAND){
+                        instructions.add(new Unary(resultReg, UnOp.Mov, lhs));
+                        String bypassLabel = labels.createLabel("andshortcircut");
+                        instructions.add(new Branch(bypassLabel, BranchMode.NonZero, resultReg));
+                        int rhs = generateExpression(expression.jjtGetChild(1));
+                        instructions.add(new Unary(resultReg, UnOp.Mov, rhs));
+                        instructions.add(new Label(bypassLabel));
+
+                    }else{
+                        int rhs = generateExpression(expression.jjtGetChild(1));
+                        instructions.add(new Binary(resultReg,binOp.getRTLBinop(),lhs,rhs));
+                    }
+
                    return resultReg;
                 case UcParseTreeConstants.JJTASSIGNMENT:
                     return generateAssignment(expression);
@@ -154,11 +208,38 @@ public class CodeGenerator {
                 case UcParseTreeConstants.JJTARRAYLOOKUP:
                     return generateArrayLookup(expression);
 
-                case UcParseTreeConstants.JJTFUNCTIONCALL:
-                    break;
 
                 case UcParseTreeConstants.JJTUNARYEXPR:
-                    break;
+                    //not or minus
+                    resultReg = generateExpression(expression.jjtGetChild(0));
+                    UnOp unOp = ((Unop)expression.jjtGetValue()).getRtlUnop();
+                    instructions.add(new Unary(resultReg,unOp,resultReg));
+                    return resultReg;
+
+                case UcParseTreeConstants.JJTFUNCTIONCALL:
+                    String name = (String) expression.jjtGetChild(0).jjtGetValue();
+
+                    int numOfChild = expression.jjtGetChild(1).jjtGetNumChildren();
+
+                    int[] argRegArr = new int[numOfChild];
+
+
+
+                    for(int i=0; i <numOfChild; i++)
+                    {
+                        argRegArr[i] = generateExpression(expression.jjtGetChild(1).jjtGetChild(i));
+                    }
+
+                    Type retT = module.getFunctions().get(name).getReturnType();
+
+                   if(!retT.isVoid()){
+                       int rvReg = registers.createRegister(retT.getRtlType());
+                       instructions.add(new Call(rvReg,name,argRegArr));
+                       return rvReg;
+                   }else {
+                       instructions.add(new Call(name,argRegArr));
+                       return -1;
+                   }
 
 
                 default:
@@ -198,7 +279,7 @@ public class CodeGenerator {
                 case UcParseTreeConstants.JJTIDENTIFIER:
                     //we should distinguish the locals and globals
 
-                    String name = (String) expression.jjtGetValue();
+                    String name = (String) lhs.jjtGetValue();
 
                     if(locals.containsKey(name)){
                         dest = locals.get(name);
@@ -214,6 +295,7 @@ public class CodeGenerator {
                         elemType = module.getGlobalDefinitions().get(name).getRtlType();
 
                     }
+                  break;
                 case UcParseTreeConstants.JJTARRAYLOOKUP:
                     int baseReg = generateExpression(lhs.jjtGetChild(0));
                     int indexReg = generateExpression(lhs.jjtGetChild(1));

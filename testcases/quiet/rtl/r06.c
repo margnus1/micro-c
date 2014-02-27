@@ -1,4 +1,4 @@
-#include <stdio.h>
+
 
 int fac(int n) {
   int i;
