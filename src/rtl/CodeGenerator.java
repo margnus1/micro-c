@@ -1,10 +1,8 @@
 package rtl;
 
-import org.omg.CORBA.portable.ApplicationException;
 import parser.*;
 import semantic.FunctionType;
 import semantic.Type;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -125,6 +123,7 @@ public class CodeGenerator {
                     break;
                 default:
                     generateExpression(statement);
+                    break;
             }
         }
 
@@ -142,17 +141,12 @@ public class CodeGenerator {
 
         private void generateIfStatement(SimpleNode statement) {
             int numOfChild = statement.jjtGetNumChildren();
-
             int condReg = generateExpression(statement.jjtGetChild(0));
-
             String endIfLabel = labels.createLabel("end_if");
-
 
             if(numOfChild == 2){
                 instructions.add(new Branch(endIfLabel, BranchMode.Zero,condReg));
-
                 generateStatement(statement.jjtGetChild(1));
-
 
             }else{
                 String elseLabel = labels.createLabel("else");
@@ -162,9 +156,7 @@ public class CodeGenerator {
 
                 instructions.add(new Label(elseLabel));
                 generateStatement(statement.jjtGetChild(2));
-
             }
-
             instructions.add(new Label(endIfLabel));
         }
 
@@ -181,33 +173,6 @@ public class CodeGenerator {
                     resultReg = registers.createRegister(RtlType.INT);
                     instructions.add(new IntConst(resultReg, (Integer)expression.jjtGetValue()));
                     return resultReg;
-                case UcParseTreeConstants.JJTIDENTIFIER:
-                    return generateIdentifier(expression);
-                case UcParseTreeConstants.JJTBINARY:
-                    resultReg = registers.createRegister(RtlType.INT);
-                    int lhs = generateExpression(expression.jjtGetChild(0));
-
-                    Binop binOp = (Binop)expression.jjtGetValue();
-                    if(binOp == Binop.ANDAND){
-                        instructions.add(new Unary(resultReg, UnOp.Mov, lhs));
-                        String bypassLabel = labels.createLabel("andshortcircut");
-                        instructions.add(new Branch(bypassLabel, BranchMode.NonZero, resultReg));
-                        int rhs = generateExpression(expression.jjtGetChild(1));
-                        instructions.add(new Unary(resultReg, UnOp.Mov, rhs));
-                        instructions.add(new Label(bypassLabel));
-
-                    }else{
-                        int rhs = generateExpression(expression.jjtGetChild(1));
-                        instructions.add(new Binary(resultReg,binOp.getRTLBinop(),lhs,rhs));
-                    }
-
-                   return resultReg;
-                case UcParseTreeConstants.JJTASSIGNMENT:
-                    return generateAssignment(expression);
-
-                case UcParseTreeConstants.JJTARRAYLOOKUP:
-                    return generateArrayLookup(expression);
-
 
                 case UcParseTreeConstants.JJTUNARYEXPR:
                     //not or minus
@@ -216,76 +181,113 @@ public class CodeGenerator {
                     instructions.add(new Unary(resultReg,unOp,resultReg));
                     return resultReg;
 
+                case UcParseTreeConstants.JJTIDENTIFIER:
+                    return generateIdentifier(expression);
+                case UcParseTreeConstants.JJTBINARY:
+                    return generateBinary(expression);
+                case UcParseTreeConstants.JJTASSIGNMENT:
+                    return generateAssignment(expression);
+                case UcParseTreeConstants.JJTARRAYLOOKUP:
+                    return generateArrayLookup(expression);
                 case UcParseTreeConstants.JJTFUNCTIONCALL:
-                    String name = (String) expression.jjtGetChild(0).jjtGetValue();
-
-                    int numOfChild = expression.jjtGetChild(1).jjtGetNumChildren();
-
-                    int[] argRegArr = new int[numOfChild];
-
-
-
-                    for(int i=0; i <numOfChild; i++)
-                    {
-                        argRegArr[i] = generateExpression(expression.jjtGetChild(1).jjtGetChild(i));
-                    }
-
-                    Type retT = module.getFunctions().get(name).getReturnType();
-
-                   if(!retT.isVoid()){
-                       int rvReg = registers.createRegister(retT.getRtlType());
-                       instructions.add(new Call(rvReg,name,argRegArr));
-                       return rvReg;
-                   }else {
-                       instructions.add(new Call(name,argRegArr));
-                       return -1;
-                   }
-
+                    return generateFunctionCall(expression);
 
                 default:
                     throw new RuntimeException("Unexpected AST node in expression. This should have been caught in the semantic pass.");
             }
         }
 
+        private int generateFunctionCall(SimpleNode expression) {
+            String name = (String) expression.jjtGetChild(0).jjtGetValue();
+            int numOfChild = expression.jjtGetChild(1).jjtGetNumChildren();
+            int[] argRegArr = new int[numOfChild];
+
+            for(int i=0; i <numOfChild; i++) {
+                argRegArr[i] = generateExpression(expression.jjtGetChild(1).jjtGetChild(i));
+            }
+
+            Type retT = module.getFunctions().get(name).getReturnType();
+            if(!retT.isVoid()){
+                int rvReg = registers.createRegister(retT.getRtlType());
+                instructions.add(new Call(rvReg,name,argRegArr));
+                return rvReg;
+            }else{
+                instructions.add(new Call(name,argRegArr));
+                return -1;
+            }
+        }
+
+        private int generateBinary(SimpleNode expression) {
+            int resultReg;
+            resultReg = registers.createRegister(RtlType.INT);
+            int lhs = generateExpression(expression.jjtGetChild(0));
+
+            Binop binOp = (Binop)expression.jjtGetValue();
+            if(binOp == Binop.ANDAND){
+                instructions.add(new Unary(resultReg, UnOp.Mov, lhs));
+                String bypassLabel = labels.createLabel("andshortcircut");
+                instructions.add(new Branch(bypassLabel, BranchMode.NonZero, resultReg));
+                int rhs = generateExpression(expression.jjtGetChild(1));
+                instructions.add(new Unary(resultReg, UnOp.Mov, rhs));
+                instructions.add(new Label(bypassLabel));
+
+            }else{
+                int rhs = generateExpression(expression.jjtGetChild(1));
+                instructions.add(new Binary(resultReg,binOp.getRTLBinop(),lhs,rhs));
+            }
+            return resultReg;
+        }
+
         private int generateArrayLookup(SimpleNode expression) {
-            int baseReg = generateExpression(expression.jjtGetChild(0));
-            int indexReg = generateExpression(expression.jjtGetChild(1));
+            RtlType elemType = (RtlType)expression.jjtGetValue();
+            int tempReg = generateArrayLookupAddress(expression);
 
-            RtlType elemType;
-            int size  = (elemType =(RtlType)expression.jjtGetValue()).size();
-            int sizeReg = registers.createRegister(RtlType.INT);
-            instructions.add(new IntConst(sizeReg,size));
+            instructions.add(new Load(tempReg,elemType,tempReg));
+            return tempReg;
+        }
 
-            instructions.add(new Binary(sizeReg, BinOp.MUL,indexReg,sizeReg));
+        /**
+         * Compute the address of an ArrayLookup node
+         * @param arrayLookup An ArrayLookup AST node.
+         * @return A newly allocated temporary register containing the address
+         *         of the looked-up element.
+         */
+        private int generateArrayLookupAddress(SimpleNode arrayLookup) {
+            RtlType elemType = (RtlType)arrayLookup.jjtGetValue();
+            int baseReg = generateExpression(arrayLookup.jjtGetChild(0));
+            int indexReg = generateExpression(arrayLookup.jjtGetChild(1));
 
-            instructions.add(new Binary(sizeReg,BinOp.ADD,sizeReg,baseReg));
-
-            //sizeReg contains the address now
-
-            instructions.add(new Load(sizeReg,elemType,sizeReg));
-
-            return sizeReg;
+            // Compute the address of the element in tempReg
+            int tempReg = registers.createRegister(RtlType.INT);
+            instructions.add(new IntConst(tempReg,elemType.size()));
+            instructions.add(new Binary(tempReg,BinOp.MUL,tempReg,indexReg));
+            instructions.add(new Binary(tempReg,BinOp.ADD,tempReg,baseReg));
+            return tempReg;
         }
 
         private int generateAssignment(SimpleNode expression) {
-
             int rhsReg = generateExpression(expression.jjtGetChild(1));
 
             SimpleNode lhs = expression.jjtGetChild(0);
             RtlType elemType;
             int dest;
 
+            /* This method has two code paths, corresponding to two different
+             * types of left-hand sides.
+             * One is a local stored in a register, which causes the code to
+             * return inside the switch statement.
+             * The other one is anything we need to compute the address of,
+             * which falls out of the switch statement, with the dest register
+             * set to some temporary register containing the address of the lhs.
+             */
             switch (lhs.getId()){
                 case UcParseTreeConstants.JJTIDENTIFIER:
                     //we should distinguish the locals and globals
-
                     String name = (String) lhs.jjtGetValue();
 
                     if(locals.containsKey(name)){
                         dest = locals.get(name);
-
                         instructions.add(new Unary(dest,UnOp.Mov,rhsReg));
-
                         return rhsReg;
 
                     }else{
@@ -293,35 +295,20 @@ public class CodeGenerator {
                         instructions.add(new GlobalAddress(dest,name));
 
                         elemType = module.getGlobalDefinitions().get(name).getRtlType();
-
                     }
-                  break;
-                case UcParseTreeConstants.JJTARRAYLOOKUP:
-                    int baseReg = generateExpression(lhs.jjtGetChild(0));
-                    int indexReg = generateExpression(lhs.jjtGetChild(1));
-
-                    int size  = (elemType = (RtlType)lhs.jjtGetValue()).size();
-                    int sizeReg = registers.createRegister(RtlType.INT);
-                    instructions.add(new IntConst(sizeReg,size));
-
-                    instructions.add(new Binary(sizeReg,BinOp.MUL,indexReg,sizeReg));
-
-                    instructions.add(new Binary(sizeReg,BinOp.ADD,sizeReg,baseReg));
-
-                    //sizeReg now contains the address to be assigned
-                    //address in the register
-
-                    dest = sizeReg;
                     break;
-                default: throw new RuntimeException("Bad assignee");
+                case UcParseTreeConstants.JJTARRAYLOOKUP:
+                    elemType = (RtlType)lhs.jjtGetValue();
+                    dest = generateArrayLookupAddress(lhs);
+                    break;
+                default:
+                    throw new RuntimeException("Bad assignee");
             }
-            // in this case, dest contains the address to be assigned
 
+            // in this case, dest contains the address to be assigned and
+            // elemType its type
             instructions.add(new Store(dest,elemType,rhsReg));
-
             return rhsReg;
-
-
         }
 
         private int generateIdentifier(SimpleNode expression) {
