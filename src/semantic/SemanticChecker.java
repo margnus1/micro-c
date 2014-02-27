@@ -233,6 +233,8 @@ public class SemanticChecker {
         Type indexT = checkExpr(arrayLookup.jjtGetChild(1));
         indexT.assertArithmetic(arrayLookup);
 
+        arrayLookup.jjtSetValue(arrT.getElementType().getRtlType());
+
         return arrT.getElementType();
     }
 

@@ -2,6 +2,7 @@ package rtl;
 
 import org.omg.CORBA.portable.ApplicationException;
 import parser.AST;
+import parser.Binop;
 import parser.SimpleNode;
 import parser.UcParseTreeConstants;
 import semantic.FunctionType;
@@ -140,25 +141,124 @@ public class CodeGenerator {
                     instructions.add(new IntConst(resultReg, (Integer)expression.jjtGetValue()));
                     return resultReg;
                 case UcParseTreeConstants.JJTIDENTIFIER:
-                    String id = (String)expression.jjtGetValue();
-                    if (locals.containsKey(id))
-                        return locals.get(id);
-                    else if (arrays.containsKey(id)) {
-                        int addrReg = registers.createRegister(RtlType.INT);
-                        instructions.add(new ArrayAddress(addrReg, arrays.get(id).offset));
-                        return addrReg;
-                    } else if (module.getGlobalDefinitions().containsKey(id)) {
-                        Type def = module.getGlobalDefinitions().get(id);
-                        resultReg = registers.createRegister(RtlType.INT);
-                        instructions.add(new GlobalAddress(resultReg, id));
-                        if (!def.isVector())
-                            instructions.add(new Load(resultReg, def.getRtlType(), resultReg));
-                        return resultReg;
-                    } else throw new RuntimeException("Can't map identifier to definition.");
-                // TODO: The rest of the types
+                    return generateIdentifier(expression);
+                case UcParseTreeConstants.JJTBINARY:
+                    resultReg = registers.createRegister(RtlType.INT);
+                    int lhs = generateExpression(expression.jjtGetChild(0));
+                    int rhs = generateExpression(expression.jjtGetChild(1));
+                    instructions.add(new Binary(resultReg,((Binop)expression.jjtGetValue()).getRTLBinop(),lhs,rhs));
+                   return resultReg;
+                case UcParseTreeConstants.JJTASSIGNMENT:
+                    return generateAssignment(expression);
+
+                case UcParseTreeConstants.JJTARRAYLOOKUP:
+                    return generateArrayLookup(expression);
+
+                case UcParseTreeConstants.JJTFUNCTIONCALL:
+                    break;
+
+                case UcParseTreeConstants.JJTUNARYEXPR:
+                    break;
+
+
                 default:
                     throw new RuntimeException("Unexpected AST node in expression. This should have been caught in the semantic pass.");
             }
+        }
+
+        private int generateArrayLookup(SimpleNode expression) {
+            int baseReg = generateExpression(expression.jjtGetChild(0));
+            int indexReg = generateExpression(expression.jjtGetChild(1));
+
+            RtlType elemType;
+            int size  = (elemType =(RtlType)expression.jjtGetValue()).size();
+            int sizeReg = registers.createRegister(RtlType.INT);
+            instructions.add(new IntConst(sizeReg,size));
+
+            instructions.add(new Binary(sizeReg, BinOp.MUL,indexReg,sizeReg));
+
+            instructions.add(new Binary(sizeReg,BinOp.ADD,sizeReg,baseReg));
+
+            //sizeReg contains the address now
+
+            instructions.add(new Load(sizeReg,elemType,sizeReg));
+
+            return sizeReg;
+        }
+
+        private int generateAssignment(SimpleNode expression) {
+
+            int rhsReg = generateExpression(expression.jjtGetChild(1));
+
+            SimpleNode lhs = expression.jjtGetChild(0);
+            RtlType elemType;
+            int dest;
+
+            switch (lhs.getId()){
+                case UcParseTreeConstants.JJTIDENTIFIER:
+                    //we should distinguish the locals and globals
+
+                    String name = (String) expression.jjtGetValue();
+
+                    if(locals.containsKey(name)){
+                        dest = locals.get(name);
+
+                        instructions.add(new Unary(dest,UnOp.Mov,rhsReg));
+
+                        return rhsReg;
+
+                    }else{
+                        dest = registers.createRegister(RtlType.INT);
+                        instructions.add(new GlobalAddress(dest,name));
+
+                        elemType = module.getGlobalDefinitions().get(name).getRtlType();
+
+                    }
+                case UcParseTreeConstants.JJTARRAYLOOKUP:
+                    int baseReg = generateExpression(lhs.jjtGetChild(0));
+                    int indexReg = generateExpression(lhs.jjtGetChild(1));
+
+                    int size  = (elemType = (RtlType)lhs.jjtGetValue()).size();
+                    int sizeReg = registers.createRegister(RtlType.INT);
+                    instructions.add(new IntConst(sizeReg,size));
+
+                    instructions.add(new Binary(sizeReg,BinOp.MUL,indexReg,sizeReg));
+
+                    instructions.add(new Binary(sizeReg,BinOp.ADD,sizeReg,baseReg));
+
+                    //sizeReg now contains the address to be assigned
+                    //address in the register
+
+                    dest = sizeReg;
+                    break;
+                default: throw new RuntimeException("Bad assignee");
+            }
+            // in this case, dest contains the address to be assigned
+
+            instructions.add(new Store(dest,elemType,rhsReg));
+
+            return rhsReg;
+
+
+        }
+
+        private int generateIdentifier(SimpleNode expression) {
+            int resultReg;
+            String id = (String)expression.jjtGetValue();
+            if (locals.containsKey(id))
+                return locals.get(id);
+            else if (arrays.containsKey(id)) {
+                int addrReg = registers.createRegister(RtlType.INT);
+                instructions.add(new ArrayAddress(addrReg, arrays.get(id).offset));
+                return addrReg;
+            } else if (module.getGlobalDefinitions().containsKey(id)) {
+                Type def = module.getGlobalDefinitions().get(id);
+                resultReg = registers.createRegister(RtlType.INT);
+                instructions.add(new GlobalAddress(resultReg, id));
+                if (!def.isVector())
+                    instructions.add(new Load(resultReg, def.getRtlType(), resultReg));
+                return resultReg;
+            } else throw new RuntimeException("Can't map identifier to definition.");
         }
     }
 }
