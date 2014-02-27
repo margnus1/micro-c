@@ -77,7 +77,7 @@ public class CodeGenerator {
                     RtlType elemType = localType.getElementType().getRtlType();
                     int vectorSize = localType.getByteSize();
                     gen.arrays.put(localName, new ArrayLocal(gen.allocatedStackSpace, elemType));
-                    gen.allocatedStackSpace += vectorSize;
+                    gen.allocatedStackSpace += ((vectorSize + 3) / 4) * 4;
                 } else {
                     int reg = gen.registers.createRegister(localType.getRtlType());
                     gen.locals.put(localName, reg);
