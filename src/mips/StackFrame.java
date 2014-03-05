@@ -58,8 +58,7 @@ public class StackFrame {
         temporaries.put(key, byteSize =  utils.Alignment.align(byteSize, 4) + 4);
     }
     public void pushByteTemporary(Object key) {
-        temporaries.put(key, byteSize);
-        byteSize += 1;
+        temporaries.put(key, byteSize += 1);
     }
 
     public void pushArraySpace(int size) {
