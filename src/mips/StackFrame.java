@@ -55,7 +55,7 @@ public class StackFrame {
         }
     }
     public void pushWordTemporary(Object key) {
-        temporaries.put(key, byteSize =  utils.Alignment.align(byteSize, 4) + 4);
+        temporaries.put(key, byteSize = utils.Alignment.align(byteSize, 4) + 4);
     }
     public void pushByteTemporary(Object key) {
         temporaries.put(key, byteSize += 1);

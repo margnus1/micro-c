@@ -28,29 +28,6 @@ public class MipsWriter extends MipsOutputStream {
     }
 
     @Override
-    public void emitRType(MipsROp op, MipsRegister rs, MipsRegister rt, MipsRegister rd) {
-        emitInstruction(op.toString().toLowerCase() + " " +
-                rs + ", " + rt + ", " + rd);
-    }
-
-    @Override
-    public void emitIType(MipsIOp op, MipsRegister rs, MipsRegister rt, int immediate) {
-        emitInstruction(op.toString().toLowerCase() + " " +
-                rs + ", " + rt + ", " + immediate);
-    }
-
-    @Override
-    public void emitIType(MipsIOp op, MipsRegister rs, MipsRegister rt, String label) {
-        emitInstruction(op.toString().toLowerCase() + " " +
-                rs + ", " + rt + ", " + label);
-    }
-
-    @Override
-    public void emitJType(MipsJOp op, String label) {
-        emitInstruction(op.toString().toLowerCase() + " " + label);
-    }
-
-    @Override
     public void emitLabel(String label) {
         emitDirective(label + ":");
     }
@@ -69,8 +46,18 @@ public class MipsWriter extends MipsOutputStream {
         }
     }
 
-    private void emitInstruction(String instruction) {
-        emitLine(instrIndent + instruction);
+    @Override
+    public void emitInstruction(String instruction, String... args) {
+        StringBuilder line = new StringBuilder();
+        line.append(instrIndent).append(instruction);
+
+        String pad = "";
+        for (int width = instruction.length(); width < 7; width++) pad += " ";
+
+        for (int i = 0; i < args.length; i++)
+            line.append(i == 0 ? pad + " " : ", ").append(args[i]);
+
+        emitLine(line.toString());
     }
     private void emitDirective(String directive) {
         emitLine(directive);
