@@ -1,3 +1,6 @@
+import mips.MIPSGenerator;
+import mips.MipsOutputStream;
+import mips.MipsWriter;
 import parser.*;
 import rtl.CodeGenerator;
 import semantic.SemanticChecker;
@@ -27,6 +30,17 @@ public class Main {
                 semantic.Module ast = SemanticChecker.process(tree);
                 rtl.Module rtl = CodeGenerator.compileModule(ast);
                 System.out.print(rtl);
+
+                MipsOutputStream os = new MipsWriter(new BufferedWriter(new OutputStreamWriter(System.out)));
+                MIPSGenerator generator = new MIPSGenerator(os);
+                generator.generateCode(rtl);
+
+
+
+
+
+
+
             } catch (CompileError error) {
                 error.printNicely(file);
                 System.err.println();

@@ -42,8 +42,8 @@ public class StackFrame {
     public void pushArgument(int index) {
         byteSize = argumentOffsets[index] = utils.Alignment.align(byteSize, 4) + 4;
     }
-    public void pushArguments(int count) {
-        for (int index = count - 1; index >= 0; index++) {
+    public void pushArguments() {
+        for (int index = argumentCount - 1; index >= 0; index--) {
             pushArgument(index);
         }
     }

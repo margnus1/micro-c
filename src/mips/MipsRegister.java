@@ -25,6 +25,21 @@ public enum MipsRegister {
         this.number = number;
     }
 
+    public static MipsRegister getArgRegister(int i){
+        switch (i){
+            case 0:
+                return MipsRegister.A0;
+            case 1:
+                return  MipsRegister.A1;
+            case 2:
+                return  MipsRegister.A2;
+            case 3:
+                return MipsRegister.A3;
+        }
+        throw new RuntimeException("unsupported index of register");
+
+    }
+
     @Override public String toString() {
         return "$"+name;
     }

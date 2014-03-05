@@ -79,6 +79,8 @@ public class MipsWriter extends MipsOutputStream {
         try {
             writer.write(line);
             writer.write("\n");
+            writer.flush();
+
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
