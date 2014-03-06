@@ -42,6 +42,9 @@ public class MIPSGenerator {
         //calculate the offset of stack
         int argNum = proc.getArgumentCount();
 
+        // Describe the stack frame by pushing (aribtrarily chosen, but
+        // necessarily unique) keys (names) of the slots in order of
+        // decreasing memory addresses
         StackFrame sf = new StackFrame(argNum);
         sf.pushArguments();
         sf.setInitialSP();
@@ -53,62 +56,43 @@ public class MIPSGenerator {
             //rest of the temporaries
             sf.pushTemporary(i,registers.get(i));
         }
-
         sf.pushArraySpace(proc.getStackFrameSize());
-
-        int offsetStack = sf.getOffsetFromInitalSP();
+        sf.finalise(4); // We require sp to be word-aligned
 
         //allocate stack space
-        os.emitIType(MipsIOp.ADDIU,MipsRegister.SP,MipsRegister.SP,-offsetStack);
+        int offsetStack = sf.getOffsetFromInitalSP();
+        os.emitInstruction("addiu", MipsRegister.SP, MipsRegister.SP, -offsetStack);
 
         //push the arguments
         //a0,a1,a2,a3
-
         for(int i=0; i < Math.min(argNum,4); i++){
-            MipsIOp storeOp;
-            switch (registers.get(i+1)){
-                case INT:
-                    storeOp = MipsIOp.SW;
-                    break;
-                case BYTE:
-                    storeOp = MipsIOp.SB;
-                    break;
-                default:
-                    throw new RuntimeException("Unsupported type");
-            }
-
-            os.emitIType(storeOp,
+            os.emitMemory(getStoreOp(registers.get(i+1)),
                     MipsRegister.getArgRegister(i),
-                    MipsRegister.SP,
-                    sf.getArgumentOffset(i));
+                    sf.getArgumentOffset(i),
+                    MipsRegister.SP);
         }
 
         //store ra
         int offsetRA = sf.getTemporaryOffset(Spills.RA);
-        os.emitIType(MipsIOp.SW, MipsRegister.RA, MipsRegister.SP, offsetRA);
+        os.emitMemory("sw", MipsRegister.RA, offsetRA, MipsRegister.SP);
 
         //store old fp
         int offsetFP = sf.getTemporaryOffset(Spills.OldFP);
-        os.emitIType(MipsIOp.SW,MipsRegister.FP,MipsRegister.SP,offsetFP);
+        os.emitMemory("sw", MipsRegister.FP, offsetFP, MipsRegister.SP);
 
         //adjust the fp
         //...to be done
         //pseudo-instruction MOVE: move $fp <- $sp
-        os.emitIType(MipsIOp.ADDIU,MipsRegister.FP,MipsRegister.SP,0);
+        os.emitInstruction("move", MipsRegister.FP, MipsRegister.SP);
 
         //start of the body
         for (Object instruction : proc.getInstructions()){
             if(instruction instanceof ArrayAddress){
                 int destRtlReg = ((ArrayAddress) instruction).getDest();
-
                 int arrBaseOffest = ((ArrayAddress) instruction).getOffset();
 
-                //addiu($t0,$fp,offset)
-                os.emitIType(MipsIOp.ADDIU, MipsRegister.T0, MipsRegister.FP, arrBaseOffest + sf.getArrayOffset());
-
-                //sw($t0,...(sp))
-                os.emitIType(MipsIOp.SW, MipsRegister.T0, MipsRegister.FP, sf.getTemporaryOffset(destRtlReg));
-
+                os.emitInstruction("addiu", MipsRegister.T0, MipsRegister.FP, arrBaseOffest + sf.getArrayOffset());
+                os.emitMemory("sw", MipsRegister.T0, sf.getTemporaryOffset(destRtlReg), MipsRegister.FP);
 
             }else if(instruction instanceof Binary){
 
@@ -133,10 +117,15 @@ public class MIPSGenerator {
             }else{
                 throw new RuntimeException("Unsupported RTL instruction");
             }
+        }
+    }
 
-
-
-
+    private String getStoreOp(RtlType t) {
+        switch (t){
+            case INT:  return "sw";
+            case BYTE: return "sb";
+            default:
+                throw new RuntimeException("Unsupported type");
         }
     }
 }

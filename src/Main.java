@@ -26,7 +26,8 @@ public class Main {
                 SimpleNode tree = parser.Start();
                 tree.jjtAccept(new TokenRangeNormaliserVisitor(), null);
 
-                 tree.jjtAccept(new ASTPrinterVisitor(), "");
+                //tree.jjtAccept(new ASTPrinterVisitor(), "");
+
                 semantic.Module ast = SemanticChecker.process(tree);
                 rtl.Module rtl = CodeGenerator.compileModule(ast);
                 System.out.print(rtl);
@@ -35,16 +36,10 @@ public class Main {
                 MIPSGenerator generator = new MIPSGenerator(os);
                 generator.generateCode(rtl);
 
-
-
-
-
-
-
             } catch (CompileError error) {
                 error.printNicely(file);
                 System.err.println();
-                //System.exit(1);
+                System.exit(1);
             }
         }
         System.exit(0);
