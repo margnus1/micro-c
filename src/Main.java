@@ -3,6 +3,7 @@ import mips.MipsOutputStream;
 import mips.MipsWriter;
 import parser.*;
 import rtl.CodeGenerator;
+import rtl.Mangler;
 import semantic.SemanticChecker;
 import utils.CommandLine;
 import utils.CompileError;
@@ -28,6 +29,7 @@ public class Main {
 
                 semantic.Module ast = SemanticChecker.process(tree);
                 rtl.Module rtl = CodeGenerator.compileModule(ast);
+                if (cl.mangleSymbols) rtl = Mangler.mangle(rtl);
 
                 if (cl.printRtl) System.out.print(rtl);
 
