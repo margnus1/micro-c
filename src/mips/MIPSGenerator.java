@@ -153,7 +153,8 @@ public class MIPSGenerator {
 
             os.emitInstruction("addiu", MipsRegister.SP, MipsRegister.SP, 4 * argRegArr.length);
 
-            writeRtlRegister(((Call) instruction).getDest(),MipsRegister.V0);
+            if (((Call) instruction).getDest() != -1)
+                writeRtlRegister(((Call) instruction).getDest(),MipsRegister.V0);
 
 
 
@@ -198,7 +199,7 @@ public class MIPSGenerator {
             }else{
                 String opName;
                 switch (unOp){
-                    case Mov: opName = "mov"; break;
+                    case Mov: opName = "move"; break;
                     case Neg: opName = "neg"; break;
                     default:
                         throw new RuntimeException("Unsupported Operation");
