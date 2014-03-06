@@ -10,10 +10,16 @@ public abstract class MipsOutputStream {
 
     /* Convenience wrappers around emitInstruction */
     public void emitMemory(String instruction, MipsRegister data, int offset, MipsRegister addrReg) {
-        emitInstruction(instruction, data.toString(), offset + "(" + addrReg + ")");
+        if (offset == 0)
+            emitInstruction(instruction, data.toString(), "(" + addrReg + ")");
+        else
+            emitInstruction(instruction, data.toString(), offset + "(" + addrReg + ")");
     }
     public void emitMemory(String instruction, MipsRegister data, String label, MipsRegister addrReg) {
-        emitInstruction(instruction, data.toString(), label + "(" + addrReg + ")");
+        if (addrReg.equals(MipsRegister.ZERO))
+            emitInstruction(instruction, data.toString(), label);
+        else
+            emitInstruction(instruction, data.toString(), label + "(" + addrReg + ")");
     }
     public void emitInstruction(Object instruction, Object... arguments) {
         String[] argStrings = new String[arguments.length];
