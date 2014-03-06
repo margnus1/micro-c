@@ -80,125 +80,145 @@ public class MIPSGenerator {
             writeRtlRegister(i+1, MipsRegister.getArgRegister(i));
         }
 
-
         //start of the body
         for (Object instruction : proc.getInstructions()){
-            if(instruction instanceof ArrayAddress){
-                int destRtlReg = ((ArrayAddress) instruction).getDest();
-                int arrBaseOffest = ((ArrayAddress) instruction).getOffset();
+            generateInstruction(instruction);
+        }
 
-                os.emitInstruction("addiu", MipsRegister.T0, MipsRegister.FP, arrBaseOffest + sf.getArrayOffset());
-                writeRtlRegister(destRtlReg,MipsRegister.T0);
+        //load $ra
+        os.emitMemory("lw",MipsRegister.RA, offsetRA, MipsRegister.FP);
 
-            }else if(instruction instanceof Binary){
-                int lhsReg = ((Binary) instruction).getLhs();
-                int rhsReg = ((Binary) instruction).getRhs();
-                int destReg = ((Binary) instruction).getDest();
+        //load return value
+        readRtlRegister(0,MipsRegister.V0);
 
-                BinOp op = ((Binary) instruction).getOp();
+        //adjust the frame pointer
+        os.emitMemory("lw",MipsRegister.FP,offsetFP,MipsRegister.SP);
 
-                readRtlRegister(lhsReg, MipsRegister.T0);
-                readRtlRegister(rhsReg,MipsRegister.T1);
-                generateBinaryInstruction(op,MipsRegister.T0,MipsRegister.T0,MipsRegister.T1);
-                writeRtlRegister(destReg,MipsRegister.T0);
+        //pop the stack
+        os.emitInstruction("addiu", MipsRegister.SP, MipsRegister.SP, offsetStack);
 
-            }else if(instruction instanceof Branch){
-                int condReg = ((Branch) instruction).getCond();
-                BranchMode modeEnum = ((Branch) instruction).getMode();
-                String opName = modeEnum == BranchMode.Zero ? "beq":"bne";
-                String branchLabel = ((Branch) instruction).getName();
-
-                readRtlRegister(condReg,MipsRegister.T0);
-                os.emitInstruction(opName,MipsRegister.ZERO,MipsRegister.T0,branchLabel);
+        //jump back
+        os.emitInstruction("jr", MipsRegister.RA);
 
 
-            }else if(instruction instanceof Call){
-                int[] argRegArr = ((Call) instruction).getArgs();
+    }
 
-                os.emitInstruction("addiu", MipsRegister.SP, MipsRegister.SP, -4 * argRegArr.length);
+    private void generateInstruction(Object instruction) {
+        if(instruction instanceof ArrayAddress){
+            int destRtlReg = ((ArrayAddress) instruction).getDest();
+            int arrBaseOffest = ((ArrayAddress) instruction).getOffset();
 
-                for(int i=0; i<argRegArr.length; i++){
-                    MipsRegister reg = i > 3 ? MipsRegister.T0 : MipsRegister.getArgRegister(i);
-                    readRtlRegister(argRegArr[i],reg);
-                    if(i>3){
-                        os.emitMemory(getStoreOp(proc.getRegisterTypes().get(argRegArr[i])),
-                                reg,4*i,MipsRegister.SP);
-                    }
+            os.emitInstruction("addiu", MipsRegister.T0, MipsRegister.FP, arrBaseOffest + sf.getArrayOffset());
+            writeRtlRegister(destRtlReg,MipsRegister.T0);
+
+        }else if(instruction instanceof Binary){
+            int lhsReg = ((Binary) instruction).getLhs();
+            int rhsReg = ((Binary) instruction).getRhs();
+            int destReg = ((Binary) instruction).getDest();
+
+            BinOp op = ((Binary) instruction).getOp();
+
+            readRtlRegister(lhsReg, MipsRegister.T0);
+            readRtlRegister(rhsReg,MipsRegister.T1);
+            generateBinaryInstruction(op,MipsRegister.T0,MipsRegister.T0,MipsRegister.T1);
+            writeRtlRegister(destReg,MipsRegister.T0);
+
+        }else if(instruction instanceof Branch){
+            int condReg = ((Branch) instruction).getCond();
+            BranchMode modeEnum = ((Branch) instruction).getMode();
+            String opName = modeEnum == BranchMode.Zero ? "beq":"bne";
+            String branchLabel = ((Branch) instruction).getName();
+
+            readRtlRegister(condReg,MipsRegister.T0);
+            os.emitInstruction(opName,MipsRegister.ZERO,MipsRegister.T0,branchLabel);
+
+
+        }else if(instruction instanceof Call){
+            int[] argRegArr = ((Call) instruction).getArgs();
+
+            os.emitInstruction("addiu", MipsRegister.SP, MipsRegister.SP, -4 * argRegArr.length);
+
+            for(int i=0; i<argRegArr.length; i++){
+                MipsRegister reg = i > 3 ? MipsRegister.T0 : MipsRegister.getArgRegister(i);
+                readRtlRegister(argRegArr[i],reg);
+                if(i>3){
+                    os.emitMemory(getStoreOp(proc.getRegisterTypes().get(argRegArr[i])),
+                            reg,4*i,MipsRegister.SP);
                 }
-
-                String funcLabel = ((Call) instruction).getProcName();
-
-                os.emitInstruction("jal",funcLabel);
-
-                os.emitInstruction("addiu", MipsRegister.SP, MipsRegister.SP, 4 * argRegArr.length);
-
-                writeRtlRegister(((Call) instruction).getDest(),MipsRegister.V0);
-
-
-
-            }else if(instruction instanceof GlobalAddress){
-                String globalLabel = ((GlobalAddress) instruction).getName();
-                int destReg = ((GlobalAddress) instruction).getDest();
-
-                os.emitInstruction("la", MipsRegister.T0, globalLabel);
-                writeRtlRegister(destReg,MipsRegister.T0);
-
-            }else if(instruction instanceof IntConst){
-               int val = ((IntConst) instruction).getConstVal();
-               int destReg = ((IntConst) instruction).getDest();
-
-                os.emitInstruction("li",MipsRegister.T0, val);
-                writeRtlRegister(destReg, MipsRegister.T0);
-
-            }else if(instruction instanceof Jump){
-                String jumpLabel = ((Jump) instruction).getLabelName();
-                os.emitInstruction("j",jumpLabel);
-
-            }else if(instruction instanceof  Label){
-                os.emitLabel(((Label) instruction).getName());
-
-            }else if(instruction instanceof Load){
-                int addrReg = ((Load) instruction).getAddr();
-                int destReg = ((Load) instruction).getDest();
-
-                readRtlRegister(addrReg,MipsRegister.T0);
-                os.emitInstruction(getLoadOp(((Load) instruction).getType()),
-                        MipsRegister.T1, MipsRegister.T0);
-                writeRtlRegister(destReg,MipsRegister.T1);
-
-            }else if(instruction instanceof Unary){
-                UnOp unOp = ((Unary) instruction).getOp();
-                int destReg = ((Unary) instruction).getDest();
-
-                readRtlRegister(((Unary) instruction).getArg(),MipsRegister.T0);
-
-                if(unOp == UnOp.Not){
-                    os.emitInstruction("sltiu",MipsRegister.T0,MipsRegister.T0,1);
-                }else{
-                    String opName;
-                    switch (unOp){
-                        case Mov: opName = "mov"; break;
-                        case Neg: opName = "neg"; break;
-                        default:
-                            throw new RuntimeException("Unsupported Operation");
-                    }
-                    os.emitInstruction(opName,MipsRegister.T0,MipsRegister.T0);
-                }
-                writeRtlRegister(destReg,MipsRegister.T0);
-
-            }else if(instruction instanceof Store){
-                int valReg = ((Store) instruction).getVal();
-                int addrReg = ((Store) instruction).getAddr();
-
-
-                readRtlRegister(valReg,MipsRegister.T0);
-                readRtlRegister(addrReg,MipsRegister.T1);
-                os.emitInstruction(getStoreOp(((Store) instruction).getType()),
-                                        MipsRegister.T0,MipsRegister.T1);
-
-            }else{
-                throw new RuntimeException("Unsupported RTL instruction");
             }
+
+            String funcLabel = ((Call) instruction).getProcName();
+
+            os.emitInstruction("jal",funcLabel);
+
+            os.emitInstruction("addiu", MipsRegister.SP, MipsRegister.SP, 4 * argRegArr.length);
+
+            writeRtlRegister(((Call) instruction).getDest(),MipsRegister.V0);
+
+
+
+        }else if(instruction instanceof GlobalAddress){
+            String globalLabel = ((GlobalAddress) instruction).getName();
+            int destReg = ((GlobalAddress) instruction).getDest();
+
+            os.emitInstruction("la", MipsRegister.T0, globalLabel);
+            writeRtlRegister(destReg,MipsRegister.T0);
+
+        }else if(instruction instanceof IntConst){
+           int val = ((IntConst) instruction).getConstVal();
+           int destReg = ((IntConst) instruction).getDest();
+
+            os.emitInstruction("li",MipsRegister.T0, val);
+            writeRtlRegister(destReg, MipsRegister.T0);
+
+        }else if(instruction instanceof Jump){
+            String jumpLabel = ((Jump) instruction).getLabelName();
+            os.emitInstruction("j",jumpLabel);
+
+        }else if(instruction instanceof  Label){
+            os.emitLabel(((Label) instruction).getName());
+
+        }else if(instruction instanceof Load){
+            int addrReg = ((Load) instruction).getAddr();
+            int destReg = ((Load) instruction).getDest();
+
+            readRtlRegister(addrReg,MipsRegister.T0);
+            os.emitMemory(getLoadOp(((Load) instruction).getType()),
+                    MipsRegister.T1, 0, MipsRegister.T0);
+            writeRtlRegister(destReg,MipsRegister.T1);
+
+        }else if(instruction instanceof Unary){
+            UnOp unOp = ((Unary) instruction).getOp();
+            int destReg = ((Unary) instruction).getDest();
+
+            readRtlRegister(((Unary) instruction).getArg(),MipsRegister.T0);
+
+            if(unOp == UnOp.Not){
+                os.emitInstruction("sltiu",MipsRegister.T0,MipsRegister.T0,1);
+            }else{
+                String opName;
+                switch (unOp){
+                    case Mov: opName = "mov"; break;
+                    case Neg: opName = "neg"; break;
+                    default:
+                        throw new RuntimeException("Unsupported Operation");
+                }
+                os.emitInstruction(opName,MipsRegister.T0,MipsRegister.T0);
+            }
+            writeRtlRegister(destReg,MipsRegister.T0);
+
+        }else if(instruction instanceof Store){
+            int valReg = ((Store) instruction).getVal();
+            int addrReg = ((Store) instruction).getAddr();
+
+
+            readRtlRegister(valReg,MipsRegister.T0);
+            readRtlRegister(addrReg,MipsRegister.T1);
+            os.emitMemory(getStoreOp(((Store) instruction).getType()),
+                    MipsRegister.T0, 0, MipsRegister.T1);
+
+        }else{
+            throw new RuntimeException("Unsupported RTL instruction");
         }
     }
 
