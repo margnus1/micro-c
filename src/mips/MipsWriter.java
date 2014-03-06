@@ -35,6 +35,8 @@ public class MipsWriter extends MipsOutputStream {
     @Override
     public void emitGlobal(String label, int size) {
         ensureSection(Section.DATA);
+        emitDirective(".align 4");
+        emitDirective(".globl " + label);
         emitLabel(label);
         emitInstruction(".space " + size);
     }
