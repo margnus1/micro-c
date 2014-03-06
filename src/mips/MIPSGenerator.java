@@ -241,14 +241,17 @@ public class MIPSGenerator {
                 throw  new RuntimeException("Unsupported Operation");
         }
 
-        if(op == BinOp.LTEQ || op == BinOp.GTEQ){
-            os.emitInstruction(opName,dest,rhs,lhs);
-        }else if(op == BinOp.MUL || op == BinOp.DIV){
+        if(op == BinOp.MUL || op == BinOp.DIV){
             os.emitInstruction(opName,lhs,rhs);
             os.emitInstruction("mflo",dest);
 
         }else{
             os.emitInstruction(opName,dest,lhs,rhs);
+            if(op == BinOp.LTEQ || op == BinOp.GTEQ){
+                // dest <- !dest
+                // note that xori for ! only works when we know dest \in {0, 1}
+                os.emitInstruction("xori", dest, dest, 1);
+            }
         }
 
 
