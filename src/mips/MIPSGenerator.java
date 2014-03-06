@@ -6,36 +6,33 @@ import utils.Alignment;
 import java.util.Map.Entry;
 import java.util.*;
 
-
-
-
 /**
- * Created by Doris on 14-3-5.
+ * Instances of this class carry the context of a specific procedure proc.
  */
 public class MIPSGenerator {
     MipsOutputStream os;
+    StackFrame sf;
+    Proc proc;
 
-    public MIPSGenerator(MipsOutputStream os){
+    public MIPSGenerator(MipsOutputStream os, Proc proc){
         this.os = os;
+        this.proc = proc;
     }
 
-    public  void generateCode(Module rtl){
-        if(!rtl.getGlobals().isEmpty()){
-            //...output.
-            for (Entry<String, Integer> e : rtl.getGlobals().entrySet()){
-                os.emitGlobal(e.getKey(),e.getValue());
-            }
+    public static void generateCode(MipsOutputStream os, Module rtl){
+        for (Entry<String, Integer> e : rtl.getGlobals().entrySet()){
+            os.emitGlobal(e.getKey(),e.getValue());
         }
 
         //get the procedures
         for(Proc proc : rtl.getProcedures()){
-            generateProc(proc);
-
+            MIPSGenerator instance = new MIPSGenerator(os, proc);
+            instance.generateProc();
         }
     }
 
     private enum Spills {RA, OldFP}
-    private void generateProc(Proc proc) {
+    private void generateProc() {
         //output the label of procedure
         os.emitProcedure(proc.getName());
 
@@ -45,7 +42,7 @@ public class MIPSGenerator {
         // Describe the stack frame by pushing (aribtrarily chosen, but
         // necessarily unique) keys (names) of the slots in order of
         // decreasing memory addresses
-        StackFrame sf = new StackFrame(argNum);
+        sf = new StackFrame(argNum);
         sf.pushArguments();
         sf.setInitialSP();
         sf.pushWordTemporary(Spills.RA);
@@ -66,10 +63,7 @@ public class MIPSGenerator {
         //push the arguments
         //a0,a1,a2,a3
         for(int i=0; i < Math.min(argNum,4); i++){
-            os.emitMemory(getStoreOp(registers.get(i+1)),
-                    MipsRegister.getArgRegister(i),
-                    sf.getArgumentOffset(i),
-                    MipsRegister.SP);
+            writeRtlRegister(i+1, MipsRegister.getArgRegister(i));
         }
 
         //store ra
@@ -118,6 +112,13 @@ public class MIPSGenerator {
                 throw new RuntimeException("Unsupported RTL instruction");
             }
         }
+    }
+
+    private void writeRtlRegister(int rtlRegister, MipsRegister mipsRegister) {
+        os.emitMemory(getStoreOp(proc.getRegisterTypes().get(rtlRegister)),
+                mipsRegister,
+                sf.getRtlRegOffset(rtlRegister),
+                MipsRegister.SP);
     }
 
     private String getStoreOp(RtlType t) {

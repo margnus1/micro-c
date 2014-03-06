@@ -84,6 +84,11 @@ public class StackFrame {
     public int getTemporaryOffset(Object key) {
         return invertOffset(temporaries.get(key));
     }
+    public int getRtlRegOffset(int rtlReg) {
+        if (rtlReg >= 1 && rtlReg <= argumentCount)
+            return getArgumentOffset(rtlReg-1);
+        return getTemporaryOffset(rtlReg);
+    }
 
     private int invertOffset(int offsetFromHighestAddress) {
         if (offsetFromHighestAddress == -1) throw new RuntimeException("Invalid offset");
