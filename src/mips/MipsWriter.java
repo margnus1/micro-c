@@ -41,7 +41,7 @@ public class MipsWriter extends MipsOutputStream {
 
     private void ensureSection(Section section) {
         if (currentSection != section) {
-            emitDirective("." + section.toString().toLowerCase() + ":");
+            emitDirective("." + section.toString().toLowerCase());
             currentSection = section;
         }
     }

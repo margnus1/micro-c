@@ -1,9 +1,9 @@
 .text
 .set reorder # We are not using delayed branching
 # Global entry point
-.global uc$global_entry
-.ent uc$global_entry
-uc$global_entry:
+.globl uc.global_entry
+.ent uc.global_entry
+uc.global_entry:
 	jal main
 	li $v0, 10
 	syscall
