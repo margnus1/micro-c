@@ -107,7 +107,7 @@ public class TokenMgrError extends CompileError
    *    curchar     : the offending character
    * Note: You can customize the lexical error message by modifying this method.
    */
-  protected static String formatMessage(boolean EOFSeen, int lexState, int errorLine, int errorColumn, String errorAfter, char curChar) {
+  protected static String formatMessage(boolean EOFSeen, int lexState, String errorAfter, char curChar) {
       if (EOFSeen && lexState == UcParseConstants.IN_MULTI_LINE_COMMENT)
           return "Unterminated multi-line comment.";
       return("Encountered: " +
@@ -140,8 +140,16 @@ public class TokenMgrError extends CompileError
 
   /** Full Constructor. */
   public TokenMgrError(boolean EOFSeen, int lexState, int errorLine, int errorColumn, String errorAfter, char curChar, int reason) {
-      super(formatMessage(EOFSeen, lexState, errorLine, errorColumn, errorAfter, curChar),
+      super(formatMessage(EOFSeen, lexState, errorAfter, curChar),
               new Position(errorLine, errorColumn - errorAfter.length(), errorLine, errorColumn), null);
+  }
+
+  /** Custom constructor providing better information for error message formulation,
+   *  but isn't used by the generated code by default. */
+  public TokenMgrError(boolean EOFSeen, int lexState, int errorLine, int errorColumn, String errorAfter, char curChar, int reason,  SimpleCharStream input_stream) {
+      super(formatMessage(EOFSeen, lexState, errorAfter, curChar),
+              new Position(input_stream.getBeginLine(), input_stream.getBeginColumn(),
+                           errorLine, errorColumn), null);
   }
 }
 /* JavaCC - OriginalChecksum=ba18a71440764bff9799ac2de7c1aa18 (do not edit this line) */
