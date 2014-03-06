@@ -33,8 +33,7 @@ public class Main {
                 System.out.print(rtl);
 
                 MipsOutputStream os = new MipsWriter(new BufferedWriter(new OutputStreamWriter(System.out)));
-                MIPSGenerator generator = new MIPSGenerator(os);
-                generator.generateCode(rtl);
+                MIPSGenerator.generateCode(os, rtl);
 
             } catch (CompileError error) {
                 error.printNicely(file);
