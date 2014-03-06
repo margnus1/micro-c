@@ -7,6 +7,7 @@ import rtl.Mangler;
 import semantic.SemanticChecker;
 import utils.CommandLine;
 import utils.CompileError;
+import utils.Path;
 
 import java.io.*;
 
@@ -24,17 +25,23 @@ public class Main {
 
                 SimpleNode tree = parser.Start();
                 tree.jjtAccept(new TokenRangeNormaliserVisitor(), null);
-
                 if (cl.printAst) tree.jjtAccept(new ASTPrinterVisitor(), "");
 
                 semantic.Module ast = SemanticChecker.process(tree);
                 rtl.Module rtl = CodeGenerator.compileModule(ast);
                 if (cl.mangleSymbols) rtl = Mangler.mangle(rtl);
-
                 if (cl.printRtl) System.out.print(rtl);
 
-                MipsOutputStream os = new MipsWriter(new BufferedWriter(new OutputStreamWriter(System.out)));
-                MIPSGenerator.generateCode(os, rtl);
+                if (cl.stdout) {
+                    MipsOutputStream os = new MipsWriter(new OutputStreamWriter(System.out));
+                    MIPSGenerator.generateCode(os, rtl);
+                } else {
+                    String outputFile = Path.baseName(Path.fileName(file)) + ".s";
+                    try (FileWriter fw = new FileWriter(outputFile)) {
+                        MipsOutputStream os = new MipsWriter(new BufferedWriter(fw));
+                        MIPSGenerator.generateCode(os, rtl);
+                    }
+                }
 
             } catch (CompileError error) {
                 error.printNicely(file);
