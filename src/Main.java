@@ -4,6 +4,7 @@ import mips.MipsWriter;
 import parser.*;
 import rtl.CodeGenerator;
 import semantic.SemanticChecker;
+import utils.CommandLine;
 import utils.CompileError;
 
 import java.io.*;
@@ -15,22 +16,20 @@ public class Main {
 
     public static void main(String[] arg)
             throws IOException {
-        if (arg.length == 0) {
-            System.out.println("Usage: UcParse <input file name>");
-            System.exit(0);
-        }
-        for (String file : arg) {
+        CommandLine cl = CommandLine.parse(arg);
+        for (String file : cl.files) {
             try (InputStream is = new FileInputStream(file)) {
                 UcParse parser = new UcParse(is);
 
                 SimpleNode tree = parser.Start();
                 tree.jjtAccept(new TokenRangeNormaliserVisitor(), null);
 
-                //tree.jjtAccept(new ASTPrinterVisitor(), "");
+                if (cl.printAst) tree.jjtAccept(new ASTPrinterVisitor(), "");
 
                 semantic.Module ast = SemanticChecker.process(tree);
                 rtl.Module rtl = CodeGenerator.compileModule(ast);
-                System.out.print(rtl);
+
+                if (cl.printRtl) System.out.print(rtl);
 
                 MipsOutputStream os = new MipsWriter(new BufferedWriter(new OutputStreamWriter(System.out)));
                 MIPSGenerator.generateCode(os, rtl);
