@@ -26,11 +26,53 @@
 \maketitle
 
 \section{RTL Design Rationale}
+\paragraph{Why flat datatypes?}
+Or, in other words, why did we redesign this:
+
+\includegraphics[scale=0.8]{bad}
+
+to this:
+
+\includegraphics[scale=0.8]{good}
+
+The answer is, we believe the \texttt{RtlExp} pattern facilitates minimal to no
+code reuse, and complicates the instruction format, leading to a total of more,
+less readable, code.
+
+\paragraph{Why no distinction between locals and temporaries?} Because there is no
+reason to. None of the subsequent processing needs to know what is a local and
+what is a compiler-introduced temporary, so we cut the information away.
+
+\paragraph{Why having regs $1,\, \dots,\, n$ be the $n$ formals?} Again, this is a
+simplication of the format that for example makes it easier to identify what is
+a reference to a formal (when required), without losing any expressiveness of
+the language.
+
+\paragraph{Why \texttt{\textbf{ArrayAddress}}} instead of \texttt{FP}?] To simplify
+adding additional offsets to the array area without generating additional
+add-instructions or requiring data-flow optimisations to remove them. None of
+the use-cases of FP that we considered is not covered by
+\texttt{\textbf{ArrayAddress}}.
+
+Also, unless special cases was added to the code generator, FP would have to be
+stored in the stack frame together with all the other locals and temporaries (at
+MIPS generation time, that is).
+
+\paragraph{Why did we remove the empty interfaces?} There was no reason to keep
+them. Since they were empty, they did not simplify anything, nor did they give
+us any type guarantees for what instances might be.
+
+We have no common interface (as in methods) of all our instructions except for
+\texttt{toString}, which is provided by \texttt{Object} anyway.
+
+\paragraph{But you could have added an enum of all the instruction types, and added
+  a \texttt{getType} method to \texttt{RtlInsn}!} We considered that, but we
+would have to combine that with either
 \begin{itemize}
-  \item Why flat datatypes?
-  \item Why no distinction between locals and temporaries?
-  \item Why having regs $1,\, \dots,\, n$ be the $n$ formals?
-  \item Why \texttt{\textbf{ArrayAddress}} instead of \texttt{FP}?
+\item casts to the subtypes, which we needed anyway.
+\item adding methods to \texttt{RtlInsn} that are only supported by a subset of
+  instructions, which is terrible because incorrect assumptions about which
+  methods are supported won't be caught by the type system.
 \end{itemize}
 
 \newpage
