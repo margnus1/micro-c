@@ -1,0 +1,27 @@
+y: 1
+x: 4
+Procedure main
+  Argument count: 0
+  Stack frame size: 0
+  Register types:
+    RV: INT
+    r1: INT
+    r2: BYTE
+    r3: INT
+    r4: INT
+    r5: INT
+    r6: INT
+    r7: INT
+    r8: INT
+  Instructions:
+      r3 <- IntConst 42
+      r4 <- GlobalAddress x
+      r4 <- Store INT r3
+      r5 <- IntConst 43
+      r6 <- GlobalAddress y
+      r6 <- Store BYTE r5
+      r7 <- IntConst 65
+      r1 <- Mov r7
+      r8 <- IntConst 10
+      r2 <- Mov r8
+    main.exit:

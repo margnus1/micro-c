@@ -1,0 +1,18 @@
+Procedure f
+  Argument count: 1
+  Stack frame size: 0
+  Register types:
+    RV: INT
+    r1: INT
+  Instructions:
+    f.exit:
+Procedure main
+  Argument count: 0
+  Stack frame size: 8
+  Register types:
+    RV: INT
+    r1: INT
+  Instructions:
+      r1 <- ArrayAddress 0
+      Call f r1
+    main.exit:

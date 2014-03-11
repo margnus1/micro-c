@@ -1,0 +1,76 @@
+Procedure main
+  Argument count: 0
+  Stack frame size: 0
+  Register types:
+    RV: INT
+    r1: INT
+    r2: INT
+    r3: INT
+    r4: INT
+    r5: INT
+    r6: INT
+    r7: INT
+    r8: INT
+    r9: INT
+    r10: INT
+    r11: INT
+    r12: INT
+    r13: INT
+    r14: INT
+    r15: INT
+    r16: INT
+    r17: INT
+    r18: INT
+    r19: INT
+    r20: INT
+    r21: INT
+    r22: INT
+    r23: INT
+    r24: INT
+    r25: INT
+    r26: INT
+    r27: INT
+    r28: INT
+    r29: INT
+    r30: INT
+    r31: INT
+    r32: INT
+  Instructions:
+      r3 <- IntConst 1
+      r4 <- IntConst 3
+      r4 <- Not r4
+      r2 <- NE r3, r4
+      r6 <- IntConst 4
+      r5 <- Mov r6
+      Branch main.andshortcircut, NonZero, r5
+      r7 <- IntConst 6
+      r5 <- Mov r7
+    main.andshortcircut:
+      r10 <- IntConst 7
+      r11 <- IntConst 8
+      r9 <- MUL r10, r11
+      r12 <- IntConst 10
+      r8 <- ADD r9, r12
+      r15 <- IntConst 11
+      r16 <- IntConst 12
+      r14 <- SUB r15, r16
+      r18 <- IntConst 12
+      r19 <- IntConst 16
+      r17 <- DIV r18, r19
+      r13 <- ADD r14, r17
+      r22 <- IntConst 17
+      r23 <- IntConst 18
+      r21 <- LTEQ r22, r23
+      r24 <- IntConst 20
+      r24 <- Neg r24
+      r20 <- LT r21, r24
+      r26 <- IntConst 21
+      r27 <- IntConst 22
+      r25 <- EQ r26, r27
+      r1 <- Mov r25
+      r30 <- IntConst 25
+      r31 <- IntConst 27
+      r29 <- GTEQ r30, r31
+      r32 <- IntConst 28
+      r28 <- GT r29, r32
+    main.exit:

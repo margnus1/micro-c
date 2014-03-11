@@ -1,0 +1,52 @@
+a: 40
+Procedure main
+  Argument count: 0
+  Stack frame size: 12
+  Register types:
+    RV: INT
+    r1: INT
+    r2: INT
+    r3: INT
+    r4: INT
+    r5: INT
+    r6: INT
+    r7: INT
+    r8: INT
+    r9: INT
+    r10: INT
+    r11: INT
+    r12: INT
+    r13: INT
+    r14: INT
+    r15: INT
+    r16: INT
+  Instructions:
+      r2 <- GlobalAddress a
+      r3 <- IntConst 5
+      r4 <- IntConst 4
+      r4 <- MUL r4, r3
+      r4 <- ADD r4, r2
+      r4 <- Load INT r4
+      r5 <- IntConst 7
+      r1 <- ADD r4, r5
+      r6 <- GlobalAddress a
+      r7 <- IntConst 3
+      r8 <- IntConst 4
+      r8 <- MUL r8, r7
+      r8 <- ADD r8, r6
+      r8 <- Store INT r1
+      r10 <- ArrayAddress 0
+      r11 <- IntConst 5
+      r12 <- IntConst 1
+      r12 <- MUL r12, r11
+      r12 <- ADD r12, r10
+      r12 <- Load BYTE r12
+      r13 <- IntConst 7
+      r9 <- ADD r12, r13
+      r14 <- ArrayAddress 0
+      r15 <- IntConst 3
+      r16 <- IntConst 1
+      r16 <- MUL r16, r15
+      r16 <- ADD r16, r14
+      r16 <- Store BYTE r9
+    main.exit:

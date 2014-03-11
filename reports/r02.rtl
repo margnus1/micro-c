@@ -1,0 +1,26 @@
+Procedure f
+  Argument count: 2
+  Stack frame size: 0
+  Register types:
+    RV: INT
+    r1: INT
+    r2: INT
+    r3: INT
+  Instructions:
+      r3 <- ADD r1, r2
+      RV <- Mov r3
+      Jump f.exit
+    f.exit:
+Procedure main
+  Argument count: 0
+  Stack frame size: 0
+  Register types:
+    RV: INT
+    r1: INT
+    r2: INT
+    r3: INT
+  Instructions:
+      r1 <- IntConst 2
+      r2 <- IntConst 3
+      r3 <- Call f r1, r2
+    main.exit:

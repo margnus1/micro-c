@@ -1,0 +1,37 @@
+a: 40
+Procedure f
+  Argument count: 1
+  Stack frame size: 0
+  Register types:
+    RV: INT
+    r1: INT
+    r2: INT
+    r3: INT
+    r4: INT
+    r5: INT
+    r6: INT
+    r7: INT
+  Instructions:
+      r3 <- IntConst 5
+      r4 <- IntConst 4
+      r4 <- MUL r4, r3
+      r4 <- ADD r4, r1
+      r4 <- Load INT r4
+      r5 <- IntConst 7
+      r2 <- ADD r4, r5
+      r6 <- IntConst 3
+      r7 <- IntConst 4
+      r7 <- MUL r7, r6
+      r7 <- ADD r7, r1
+      r7 <- Store INT r2
+    f.exit:
+Procedure main
+  Argument count: 0
+  Stack frame size: 0
+  Register types:
+    RV: INT
+    r1: INT
+  Instructions:
+      r1 <- GlobalAddress a
+      Call f r1
+    main.exit:
