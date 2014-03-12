@@ -15,9 +15,10 @@
 \usepackage[lighttt]{lmodern}
 
 %% Simple syntax highlighting for our RTL. Add more keywords here.
-\lstset{keywords={Procedure, ADD, SUB, MUL, DIV, LTEQ, LT, EQ, NE, GTEQ, GT,
-    Mov, Not, Neg, Jump, Branch, Zero, NonZero, IntConst, GlobalAddress, Store,
-    Load, BYTE, INT, Call, ArrayAddress}}
+\lstset{language=[mips]Assembler,
+  morekeywords={Procedure, ADD, SUB, MUL, DIV, LTEQ, LT, EQ, NE, GTEQ, GT, Mov,
+    Not, Neg, Jump, Branch, Zero, NonZero, IntConst, GlobalAddress, Store, Load,
+    BYTE, INT, Call, ArrayAddress}}
 
 \title{Assignment 4: ICode Generation \\
        Compiler Design Project, 1DL420}
@@ -31,7 +32,6 @@
 	We translate \textbf{While Statement}, \textbf{If Statement} and binary operator \textbf{\&\& } into \textit{control flows} in our RTL
 	\begin{itemize}
 	\item \textbf{While Statement}
-		\lstset{language=[mips]Assembler}
 		\begin{lstlisting}
 Jump while_cond
 while_loop:
