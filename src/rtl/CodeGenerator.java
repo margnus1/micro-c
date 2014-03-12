@@ -18,6 +18,8 @@ public class CodeGenerator {
     public static Module compileModule(semantic.Module module) {
         Map<String, Integer> globals = new HashMap<>();
         List<Proc> procedures = new ArrayList<>();
+        // Literal -> symbol
+        Map<String,String> stringLiterals = new HashMap<>();
 
         for (Map.Entry<String, Type> global : module.getGlobalDefinitions().entrySet()) {
             globals.put(global.getKey(), global.getValue().getByteSize());
@@ -25,10 +27,15 @@ public class CodeGenerator {
 
         for (FunctionType type : module.getFunctions().values()) {
             if (type.getDefinition() == null) continue;
-            procedures.add(ProcedureContext.compileProcedure(module, type));
+            procedures.add(ProcedureContext.compileProcedure(module, type, stringLiterals));
         }
 
-        return new Module(globals, procedures);
+        // Symbol -> Literal
+        Map<String,String> stringSymbols = new HashMap<>();
+        for (Map.Entry<String, String> p : stringLiterals.entrySet())
+            stringSymbols.put(p.getValue(), p.getKey());
+
+        return new Module(globals, procedures, stringSymbols);
     }
 
     /**
@@ -40,6 +47,7 @@ public class CodeGenerator {
         public LabelGenerator labels;
         public List<Object> instructions = new ArrayList<>();
         private Map<String, Integer> locals = new HashMap<>();
+        Map<String,String> stringLiterals;
 
         private static class ArrayLocal {
             public int offset; public RtlType rtlType;
@@ -51,15 +59,18 @@ public class CodeGenerator {
         private Map<String, ArrayLocal> arrays = new HashMap<>();
         public int allocatedStackSpace = 0;
 
-        private ProcedureContext(semantic.Module module, String procedureName) {
+        private ProcedureContext(semantic.Module module, String procedureName,
+                                 Map<String,String> stringLiterals) {
             this.module = module;
             this.labels = new LabelGenerator(procedureName);
+            this.stringLiterals = stringLiterals;
         }
 
-        public static Proc compileProcedure(semantic.Module module, FunctionType type) {
+        public static Proc compileProcedure(semantic.Module module, FunctionType type,
+                                            Map<String,String> stringLiterals) {
             SimpleNode def = type.getDefinition();
             String name = (String)def.jjtGetChild(1).jjtGetValue();
-            ProcedureContext gen = new ProcedureContext(module, name);
+            ProcedureContext gen = new ProcedureContext(module, name, stringLiterals);
             gen.registers.createRegister(type.getReturnType().getRtlType());
 
             for (int argI = 0; argI < type.getArgumentCount(); argI++) {
@@ -191,10 +202,26 @@ public class CodeGenerator {
                     return generateArrayLookup(expression);
                 case UcParseTreeConstants.JJTFUNCTIONCALL:
                     return generateFunctionCall(expression);
-
+                case UcParseTreeConstants.JJTSTRINGLITERAL:
+                    return generateStringLiteral(expression);
                 default:
                     throw new RuntimeException("Unexpected AST node in expression. This should have been caught in the semantic pass.");
             }
+        }
+
+        private int generateStringLiteral(SimpleNode expression) {
+            String literal = (String)expression.jjtGetValue();
+            String name;
+            if (stringLiterals.containsKey(literal)) {
+                name = stringLiterals.get(literal);
+            } else {
+                name = "string_literal.." + Integer.toHexString(literal.hashCode());
+                stringLiterals.put(literal, name);
+            }
+
+            int addrReg = registers.createRegister(RtlType.INT);
+            instructions.add(new GlobalAddress(addrReg, name));
+            return addrReg;
         }
 
         private int generateFunctionCall(SimpleNode expression) {

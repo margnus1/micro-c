@@ -40,4 +40,5 @@ public abstract class MipsOutputStream {
     }
 
     public abstract void emitGlobal(String label, int size);
+    public abstract void emitGlobal(String label, String stringLiteral);
 }

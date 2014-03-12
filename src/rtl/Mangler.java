@@ -14,11 +14,15 @@ public final class Mangler {
         for (Map.Entry<String, Integer> global : input.getGlobals().entrySet())
             mangledGlobals.put(mangleSymbol(global.getKey()), global.getValue());
 
+        HashMap<String,String> mangledStringLiterals = new HashMap<>();
+        for (Map.Entry<String, String> strLit : input.getStringLiterals().entrySet())
+            mangledStringLiterals.put(mangleSymbol(strLit.getKey()), strLit.getValue());
+
         List<Proc> mangledProcedures = new ArrayList<>();
         for (Proc procedure : input.getProcedures())
             mangledProcedures.add(mangle(procedure));
 
-        return new Module(mangledGlobals, mangledProcedures);
+        return new Module(mangledGlobals, mangledProcedures, mangledStringLiterals);
     }
 
     private static Proc mangle(Proc input) {

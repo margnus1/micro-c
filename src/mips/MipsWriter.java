@@ -44,6 +44,13 @@ public class MipsWriter extends MipsOutputStream {
     }
 
     @Override
+    public void emitGlobal(String label, String stringLiteral) {
+        ensureSection(Section.DATA);
+        emitLabel(label);
+        emitInstruction(".asciiz " + stringLiteral);
+    }
+
+    @Override
     public void emitComment(String comment) {
         for (String line : comment.split("[\n\r]+"))
             emitDirective(instrIndent + (CommandLine.marsComments ? "# " : "; ") + line);

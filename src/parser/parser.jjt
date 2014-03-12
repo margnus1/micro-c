@@ -75,6 +75,11 @@ TOKEN: {<CHARACTER_LITERAL:
          |  "\\n" )
     "\'" >}
 
+TOKEN: {<STRING_LITERAL:
+    "\"" ( ["\u0020"-"\u007e"]
+         |  "\\n" )*
+    "\"" >}
+
 TOKEN : {
     <IDENTIFIER: <LETTER> (<LETTER> | <DIGIT>)*>
                | <#LETTER: ["$","A"-"Z","_","a"-"z"]>
@@ -223,6 +228,7 @@ void Expr13L() #void : {Binop op;}
 
 void ExprPrime() #void: { Unop op; }
 { ( IntegerLiteral()
+  | StringLiteral()
   | <LPAREN>
     Expression()
     <RPAREN>
@@ -272,4 +278,8 @@ void IntegerLiteral() : { Token lit; }
           jjtThis.value = (int)(lit.image.charAt(1));
       }
   }
+}
+
+void StringLiteral() : { Token lit; }
+{ lit = <STRING_LITERAL> { jjtThis.value = lit.image; }
 }

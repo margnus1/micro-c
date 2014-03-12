@@ -186,6 +186,8 @@ public class SemanticChecker {
                 return checkFuncCall(expr);
             case UcParseTreeConstants.JJTINTEGERLITERAL:
                 return new Type(expr);
+            case UcParseTreeConstants.JJTSTRINGLITERAL:
+                return new Type(expr);
             default:
                 throw new RuntimeException("Unexpected " + expr + " in AST. Expected expression.");
         }

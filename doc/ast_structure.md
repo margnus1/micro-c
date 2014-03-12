@@ -88,6 +88,8 @@ All AST Node Types
 
     IntegerLiteral (value is Integer)
 
+    StringLiteral (value is String (the whole literal, incl. escape codes))
+
 --------
     sample for precedence
 

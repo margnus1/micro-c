@@ -44,6 +44,10 @@ public class Type {
             case UcParseTreeConstants.JJTINTEGERLITERAL:
                 type = Primitive.LITERAL;
                 break;
+            case UcParseTreeConstants.JJTSTRINGLITERAL:
+                type = Primitive.ARRAY;
+                of = new Type(Primitive.CHAR, node);
+                break;
             default:
                 throw new RuntimeException("Unexpected AST node type \"" + node + "\" in Type constructor");
         }

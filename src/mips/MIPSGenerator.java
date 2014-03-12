@@ -25,6 +25,10 @@ public class MIPSGenerator {
             os.emitGlobal(e.getKey(),e.getValue());
         }
 
+        for (Entry<String, String> e : rtl.getStringLiterals().entrySet()){
+            os.emitGlobal(e.getKey(),e.getValue());
+        }
+
         //get the procedures
         for(Proc proc : rtl.getProcedures()){
             MIPSGenerator instance = new MIPSGenerator(os, proc);
