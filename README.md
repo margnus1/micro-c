@@ -3,38 +3,27 @@ micro-c
 
 A compiler from a C language subset to MIPS.
 
-CONTENTS
---------
+To Compile
+----------
 
-    lexer-test/lexer-test.jj
-Starting point for assignment 1.
-Extend this javacc file with the tokens of uC.
+To compile, use apache ant:
 
-    parser/parser.jj
-    parser/Node.java
-To be used in assignment 2.
+    ant
 
-Add the token definitions from assignment 1 to parser.jj
+To Use Compiler
+---------------
 
-Extend the incomplete grammar of parser.jj to resolve ambguities and fix the
-precedences of binary operators.
+If you've compiled to `build` (which is the default), you can run it like this
 
-Add code to produce an abstract syntax tree. You may use the representation in
-Node.java.
+    java -ea -cp build Main
 
-    parser/Position.java
+You can try compiling the sample files in the `testcases` directory.
 
-Representation of source code positions.
+To Run Assembly In Simulator
+----------------------------
 
-    parser/Env.java
-
-One way to represent environments in Java. May be used in assignments 3 and 4.
-
-    rtl/Binary.java    rtl/Icon.java      rtl/Proc.java      rtl/RtlInsn.java
-    rtl/Call.java      rtl/Jump.java      rtl/Rtl.java       rtl/RtlType.java
-    rtl/CJump.java     rtl/LabDef.java    rtl/RtlBinop.java  rtl/Store.java
-    rtl/Data.java      rtl/LabRef.java    rtl/RtlDec.java    rtl/TempExp.java
-    rtl/Eval.java      rtl/Load.java      rtl/RtlExp.java
-
-Implementation of an RTL (intermediate code) data type. These files implement
-rtl instructions and other constructs.
+The output files can be run in Mips simulators as-is. If you have made use of
+the micro-c standard library, you will need to include the assembly
+implementations in the `priv` directory. In MARS, you will need to concatenate
+the files, because it does not link assembly files together. It is preferable to
+put `uc-mars.s` first, because the entry point will be correct by default.
