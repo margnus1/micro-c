@@ -9,6 +9,7 @@
 \usepackage{amsmath}
 \usepackage{multicol}
 \usepackage{listings}
+\usepackage{mips}
 \usepackage{alltt}
 \usepackage{hyperref}
 \usepackage[lighttt]{lmodern}
@@ -25,12 +26,96 @@
 \begin{document}
 \maketitle
 
+\section{Technique Issues}
+\subsection{Control Flows}
+	We translate \textbf{While Statement}, \textbf{If Statement} and binary operator \textbf{\&\& } into \textit{control flows} in our RTL
+	\begin{itemize}
+	\item \textbf{While Statement} 
+		\lstset{language=[mips]Assembler}
+		\begin{lstlisting}
+Jump while_cond
+while_loop:
+# instructions in the while loop
+while_cond:
+# instructions to evaluate the conditions
+# and put the result into r
+Branch while_loop, NonZero, r
+		\end{lstlisting}
+	
+	\item \textbf{If Statement}
+	\begin{lstlisting}
+# instructions to evalution the conditions
+# and put the result into r
+Branch end_if, Zero, r
+# instructions in the if statement
+end_if:
+	\end{lstlisting}
+	
+	\item \textbf{\&\& Operator}
+	\begin{lstlisting}
+# evaluate the LHS and put the result into r0
+Branch andshortcircut, NonZero, r0
+# evaluate the RHS 
+    andshortcircut:
+	\end{lstlisting}
+	\end{itemize}
+	
+\subsection{Variables}
+\begin{itemize}
+	\item \textbf{Local Variable} \\
+	We allocate a \textit{register} for a local variable declaration. \\
+	During the translation, we maintain a list of registers allocated for certain procedure. So when a reference to a local variable in the source code is encountered , the corresponding allocated register is used in RTL.
+	
+	\item \textbf{Global Variable} \\
+	We generate a \textit{label} for a global variable declaration. \\
+	We use the RTL instruction \textit{GlobalAddress} to fetch the address of a global variable.
+	
+	\item \textbf{Local Array} \\
+	When a local array is declared, we allocate slots on the frame to store it. Thus, the frame size in RTL is the total length of the local arrays.\\
+	Each time an array reference is encountered, we use \textit{ArrayAddress} to fetch the base address of the array. After adding the base address by specified offset, we can access elements in the array.
+	
+	\item \textbf{Global Array} \\
+	The same as global variables, when an declaration of global array is encountered, we generate a label for it.\\
+	For reference resolution, the only difference is we use \textit{GlobalAddress} RTL instruction to fetch the base address of a global array. 
+	\end{itemize}
+	
+\subsection{Expressions}
+	An expression is flattened by generating corresponding instructions for AST subtree nodes in the bottom-up way. The intermediate result of a sub-expression is stored in temporary RTL registers and be operated on in the following expressions.\\
+	For example, $m=x+y*3-z$ will have the following RTL code:
+	\begin{lstlisting}
+      r8 <- IntConst 3
+      r7 <- MUL r3, r8
+      r6 <- ADD r2, r7
+      r5 <- SUB r6, r4
+      r1 <- Mov r5
+      r9 <- IntConst 3
+	\end{lstlisting}
+	
+\subsection{Procedure}
+For a procedure, we will generate the following code. We allocate temporaries for \textit{return value}, \textit{formals}, \textit{locals} and registers used for intermediate results.While space for local arrays is allocated on stack.
+\begin{lstlisting}
+Procedure procedure_name
+    Argument count: #args
+    Stack frame size: total_array_size
+    Register types:
+      RV: register_type
+      R1: register_type
+      ...
+      
+      Rn: register_type
+    Instructions:
+      ...
+      exit_label
+    
+\end{lstlisting}
+
 \section{RTL Design Rationale}
 \begin{itemize}
   \item Why flat datatypes?
   \item Why no distinction between locals and temporaries?
   \item Why having regs $1,\, \dots,\, n$ be the $n$ formals?
-  \item Why \texttt{\textbf{ArrayAddress}} instead of \texttt{FP}?
+  \item Why \texttt{\textbf{ArrayAddress}} instead of \textbf{FP}? \\
+  We don't know where local arrays will be put on the stack in later implementation. So we RTL instruction \textbf{ArrayAddress} instead of calculating offset based on \textbf{FP} to fetch the base address of a local array. 
 \end{itemize}
 
 \newpage
