@@ -53,7 +53,7 @@ public class MipsWriter extends MipsOutputStream {
     @Override
     public void emitComment(String comment) {
         for (String line : comment.split("[\n\r]+"))
-            emitDirective(instrIndent + (CommandLine.marsComments ? "# " : "; ") + line);
+            emitDirective(instrIndent + "# " + line);
     }
 
     private void ensureSection(Section section) {

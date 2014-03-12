@@ -13,7 +13,6 @@ public final class CommandLine {
     public static boolean mangleSymbols = false;
     public static boolean stdout = false;
     public static boolean commentAssembly = false;
-    public static boolean marsComments = false;
     public static List<String> files = new ArrayList<>();
 
     public static void parse(String[] argv) {
@@ -25,7 +24,6 @@ public final class CommandLine {
                     case "mangle-symbols":   mangleSymbols   = true; break;
                     case "stdout":           stdout          = true; break;
                     case "comment-assembly": commentAssembly = true; break;
-                    case "mars-comments":    marsComments    = true; break;
                     default:
                         System.err.println("Unknown option " + argv[i]);
                 }
@@ -44,7 +42,6 @@ public final class CommandLine {
             System.out.println("    --mangle-symbols    Mangle symbol names.");
             System.out.println("    --stdout            Print resulting assembly to stdout rather than a file.");
             System.out.println("    --comment-assembly  Add comments to output assembly.");
-            System.out.println("    --mars-comments     Use '#' for comments instead of ';'.");
         }
     }
 }
