@@ -253,7 +253,7 @@ public class CodeGenerator {
             if(binOp == Binop.ANDAND){
                 instructions.add(new Unary(resultReg, UnOp.Mov, lhs));
                 String bypassLabel = labels.createLabel("andshortcircut");
-                instructions.add(new Branch(bypassLabel, BranchMode.NonZero, resultReg));
+                instructions.add(new Branch(bypassLabel, BranchMode.Zero, resultReg));
                 int rhs = generateExpression(expression.jjtGetChild(1));
                 instructions.add(new Unary(resultReg, UnOp.Mov, rhs));
                 instructions.add(new Label(bypassLabel));
