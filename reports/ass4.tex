@@ -57,7 +57,7 @@ end_if:
 	\begin{lstlisting}
 # evaluate the LHS and put the result into r0
 Branch andshortcircut, NonZero, r0
-# evaluate the RHS
+# evaluate the RHS and put the result into r0
 andshortcircut:
 	\end{lstlisting}
 
@@ -79,7 +79,7 @@ procedure.exit:
 
       During the translation, we maintain a list of registers allocated for
       certain procedure. So when a reference to a local variable in the source
-      code is encountered , the corresponding allocated register is used in RTL.
+      code is encountered, the corresponding allocated register is used in RTL.
 
 	\item \textbf{Global Variable}
 
@@ -142,8 +142,8 @@ Procedure procedure_name
 
       Rn: register_type
     Instructions:
-      ...
-      exit_label
+        ...
+      procedure_name.exit:
 
 \end{lstlisting}
 
