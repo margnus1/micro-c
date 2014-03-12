@@ -1,5 +1,7 @@
 package mips;
 
+import utils.CommandLine;
+
 import java.io.IOException;
 import java.io.Writer;
 
@@ -39,6 +41,12 @@ public class MipsWriter extends MipsOutputStream {
         emitDirective(".globl " + label);
         emitLabel(label);
         emitInstruction(".space " + size);
+    }
+
+    @Override
+    public void emitComment(String comment) {
+        for (String line : comment.split("[\n\r]+"))
+            emitDirective(instrIndent + (CommandLine.marsComments ? "# " : "; ") + line);
     }
 
     private void ensureSection(Section section) {

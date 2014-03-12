@@ -18,21 +18,21 @@ public class Main {
 
     public static void main(String[] arg)
             throws IOException {
-        CommandLine cl = CommandLine.parse(arg);
-        for (String file : cl.files) {
+        CommandLine.parse(arg);
+        for (String file : CommandLine.files) {
             try (InputStream is = new FileInputStream(file)) {
                 UcParse parser = new UcParse(is);
 
                 SimpleNode tree = parser.Start();
                 tree.jjtAccept(new TokenRangeNormaliserVisitor(), null);
-                if (cl.printAst) tree.jjtAccept(new ASTPrinterVisitor(), "");
+                if (CommandLine.printAst) tree.jjtAccept(new ASTPrinterVisitor(), "");
 
                 semantic.Module ast = SemanticChecker.process(tree);
                 rtl.Module rtl = CodeGenerator.compileModule(ast);
-                if (cl.mangleSymbols) rtl = Mangler.mangle(rtl);
-                if (cl.printRtl) System.out.print(rtl);
+                if (CommandLine.mangleSymbols) rtl = Mangler.mangle(rtl);
+                if (CommandLine.printRtl) System.out.print(rtl);
 
-                if (cl.stdout) {
+                if (CommandLine.stdout) {
                     MipsOutputStream os = new MipsWriter(new OutputStreamWriter(System.out));
                     MIPSGenerator.generateCode(os, rtl);
                 } else {

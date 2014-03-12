@@ -7,6 +7,7 @@ public abstract class MipsOutputStream {
     public abstract void emitProcedure(String label);
     public abstract void emitInstruction(String instruction, String... arguments);
     public abstract void emitLabel(String label);
+    public void emitComment(String comment) {}
 
     /* Convenience wrappers around emitInstruction */
     public void emitMemory(String instruction, MipsRegister data, int offset, MipsRegister addrReg) {

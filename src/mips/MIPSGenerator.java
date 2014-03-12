@@ -2,6 +2,7 @@ package mips;
 
 import rtl.BinOp;
 import rtl.*;
+import utils.CommandLine;
 
 import java.util.Map.Entry;
 import java.util.*;
@@ -104,6 +105,8 @@ public class MIPSGenerator {
     }
 
     private void generateInstruction(Object instruction) {
+        if (CommandLine.commentAssembly) generateComment(instruction);
+
         if(instruction instanceof ArrayAddress){
             int destRtlReg = ((ArrayAddress) instruction).getDest();
             int arrBaseOffest = ((ArrayAddress) instruction).getOffset();
@@ -221,6 +224,11 @@ public class MIPSGenerator {
         }else{
             throw new RuntimeException("Unsupported RTL instruction");
         }
+    }
+
+    private void generateComment(Object instruction) {
+        if(instruction instanceof  Label);
+        else os.emitComment(instruction.toString());
     }
 
 

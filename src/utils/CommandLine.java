@@ -4,34 +4,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by magnus on 3/6/14.
+ * Singleton command line parser
  */
-public class CommandLine {
-    public boolean printAst = false;
-    public boolean printRtl = false;
-    public boolean mangleSymbols = false;
-    public boolean stdout = false;
-    public List<String> files = new ArrayList<>();
+public final class CommandLine {
+    private CommandLine() {}
+    public static boolean printAst = false;
+    public static boolean printRtl = false;
+    public static boolean mangleSymbols = false;
+    public static boolean stdout = false;
+    public static boolean commentAssembly = false;
+    public static boolean marsComments = false;
+    public static List<String> files = new ArrayList<>();
 
-    public static CommandLine parse(String[] argv) {
-        CommandLine cl = new CommandLine();
-
+    public static void parse(String[] argv) {
         for (int i = 0; i < argv.length; i++) {
             if(argv[i].startsWith("--")) {
                 switch (argv[i].substring(2)) {
-                    case "print-ast":      cl.printAst      = true; break;
-                    case "print-rtl":      cl.printRtl      = true; break;
-                    case "mangle-symbols": cl.mangleSymbols = true; break;
-                    case "stdout":         cl.stdout        = true; break;
+                    case "print-ast":        printAst        = true; break;
+                    case "print-rtl":        printRtl        = true; break;
+                    case "mangle-symbols":   mangleSymbols   = true; break;
+                    case "stdout":           stdout          = true; break;
+                    case "comment-assembly": commentAssembly = true; break;
+                    case "mars-comments":    marsComments    = true; break;
                     default:
                         System.err.println("Unknown option " + argv[i]);
                 }
             } else {
-                cl.files.add(argv[i]);
+                files.add(argv[i]);
             }
         }
 
-        if (cl.files.size() == 0) {
+        if (files.size() == 0) {
             System.out.println("Usage: java Main [" +
                     ANSI.highlightSubstitutionSymbol("arguments") +
                     "] " + ANSI.highlightSubstitutionSymbol("input file names"));
@@ -40,9 +43,8 @@ public class CommandLine {
             System.out.println("    --print-rtl         Pretty-print the generated RTL intermediate.");
             System.out.println("    --mangle-symbols    Mangle symbol names.");
             System.out.println("    --stdout            Print resulting assembly to stdout rather than a file.");
-            System.exit(0);
+            System.out.println("    --comment-assembly  Add comments to output assembly.");
+            System.out.println("    --mars-comments     Use '#' for comments instead of ';'.");
         }
-
-        return cl;
     }
 }
