@@ -7,6 +7,9 @@
 \usepackage{multirow}
 \usepackage{listings}
 \usepackage{mips}
+\usepackage{verbatim}
+
+\newcommand{\uC}{{$\mathrm{\mu}$}C }
 
 %% Simple syntax highlighting for our RTL. Add more keywords here.
 \lstset{language=[mips]Assembler,
@@ -19,35 +22,41 @@
 
 \section{Technique Issues}
 \subsection{Control Flow Translation}
-In the previous RTL code generation phase, we have already translate the \textbf{control flows} with \textit{Branch}, \textit{Jump} and \textit{Label}. So in the MIPS code generation phase, we simply translate the the corresponding RTL code into MIPS code.
-
+In the previous RTL code generation phase, we have already translated the
+\textbf{control flow} into \textit{Branch}, \textit{Jump}, and \textit{Label}
+instructions. So in the MIPS code generation phase, we simply translate the RTL
+code into corresponding MIPS code (\texttt{beq} and \texttt{bne}, \texttt{j}, and labels).
 
 \subsection{Calling Convention}
-We use O32 calling convention in our implementation:
-	\textbf{Calling Sequence:}
+We use the O32 calling convention in our implementation:
+	\paragraph{Calling Sequence:}
 	\begin{enumerate}
 		\item Caller allocates space on the stack for all arguments, stores the first four arguments in the argument registers (\$a0-\$a3) and the rest to stack frame.
+          Each argument is allocated atleast 4 bytes of stack space (or in the
+          \uC case, exactly 4 bytes).
 		\item Caller transfer the control to callee and save the return address to \$ra.
 		\item Callee allocates space on the stack frame.
 		\item Callee pushes the first 4 arguments in \$a0-\$a3 (if any) onto the stack frame.
 		\item Callee saves the return address (the value of \$ra) onto the stack frame.
 		\item Callee saves the old frame pointer (\$fp).
-		\item Callee set the new frame pointer (\$fp) with the current value of \$sp.
+		\item Callee sets the new frame pointer (\$fp) with the current value of \$sp.
 	\end{enumerate}
 
-	\textbf{Return sequence:}
-	\begin{enumerate}	
+	\paragraph{Return sequence:}
+	\begin{enumerate}
 		\item Callee load the return address from stack to \$ra.
-		\item Callee stores the return value in register \$v0.
-		\item Callee adjust the \$fp with the stored old frame pointer value.
+		\item Callee loads the return value into register \$v0.
+		\item Callee loads the old \$fp from the stack.
 		\item Callee deallocates the space on the stack.
-		\item Callee give control back to caller.
+		\item Callee gives control back to caller.
 		\item Caller deallocates the space for arguments on the stack.
-		\item Caller get the return value.
+		\item Caller optionally stores the return value into some stack
+          temporary.
 
 	\end{enumerate}
 
 \begin{table}
+\centering
 \begin{tabular}{ |c| c}
 ... & low address \\ \hline
 
@@ -71,7 +80,7 @@ $t_0$ \\ \hline
 $arg_n$ & \multirow{6}{*}{space for arguments} \\ \cline{1-1}
 ... \\ \cline{1-1}
 $arg_4$ \\ \cline{1-1}
-$arg_3$ \\ \cline{1-1} 
+$arg_3$ \\ \cline{1-1}
 ... \\ \cline{1-1}
 $arg_0$ \\ \hline
 
@@ -83,15 +92,16 @@ $arg_0$ \\ \hline
 \end{table}
 
 \subsection{Stack Frame}
-The stack grows from high address to low address. And the layout is shown in Table \ref{tab:stack}.
+The stack grows from high address to low address. The layout is shown in Table \ref{tab:stack}.
 \subsection{Mapping of Registers}
 The following MIPS registers are used:
 \begin{itemize}
 	\item \textbf{\$a0 to \$a3}: the first four arguments in function calls.
-	\item \textbf{\$sp}: the stack pointer
-	\item \textbf{\$fp}: the frame pointer
-	\item \textbf{\$ra}: the return address
-	\item All other RTL temporary registers used in the previous RTL code generation phase are mapped onto the stack frame as temporaries.
+	\item \textbf{\$sp}: the stack pointer.
+	\item \textbf{\$fp}: the frame pointer.
+	\item \textbf{\$ra}: the return address.
+	\item \textbf{\$t0 to \$t1}: scratch registers used in RTL translation.
+	\item All RTL temporary registers used in the previous RTL code generation phase are mapped onto the stack frame as temporaries.
 \end{itemize}
 
 \newpage
@@ -99,16 +109,20 @@ The following MIPS registers are used:
 
 \section{Sample Code for Function Call}
 \subsection{Prologue of Function Call}
-\textbf{Caller:}
-\begin{lstlisting}
+\subsubsection*{Caller:}
+%% Nice-looking line-wrap of comments. If the code is wrapped it will also be
+%% prefixed by a #-symbol, unfortunately.
+\newlength{\ttCharWidth}\settowidth{\ttCharWidth}{\texttt{M}}
+\lstset{breaklines=true,postbreak={\#\space},breakautoindent=false,breakatwhitespace=true}
+\begin{lstlisting}[breakindent=28\ttCharWidth]
     addiu   $sp, $sp, -4 # allocate space on the stack for argument(s).
     lw      $a0, 12($fp) # load the first argument to $a0
     jal     f            # call procedure f
 
 \end{lstlisting}
 
-\noindent \textbf{Callee:}
-\begin{lstlisting}
+\subsubsection*{Callee:}
+\begin{lstlisting}[breakindent=29\ttCharWidth]
     addiu   $sp, $sp, -44 # adjust the stack pointer
     sw      $ra, 40($sp)  # save the return address
     sw      $fp, 36($sp)  # save the old frame pointer
@@ -117,14 +131,14 @@ The following MIPS registers are used:
 \end{lstlisting}
 
 \subsection{Epilogue of Function Call}
-\textbf{Caller:}
-\begin{lstlisting}
+\subsubsection*{Caller:}
+\begin{lstlisting}[breakindent=27\ttCharWidth]
     addiu   $sp, $sp, 4 # deallocate space for argument(s) on the stack.
     sw      $v0, 0($fp) # get the return value (if any).
 \end{lstlisting}
 
-\noindent \textbf{Callee:}
-\begin{lstlisting}
+\subsubsection*{Callee:}
+\begin{lstlisting}[breakindent=28\ttCharWidth]
     lw      $ra, 40($fp) # load return address to $ra
     lw      $v0, 32($fp) # save return value to $v0
     lw      $fp, 36($sp) # load old frame pointer
@@ -132,5 +146,23 @@ The following MIPS registers are used:
     jr      $ra          # return control to caller
 \end{lstlisting}
 
+\section{Sample MIPS for Test Files}
+This is the MIPS assembly output from compiling the following programs.
+
+\subsection{\texttt{quiet/rtl/r01.c}} \lstinputlisting{r01.s}
+\subsection{\texttt{quiet/rtl/r02.c}} \lstinputlisting{r02.s}
+
+\section{Sample Output of Test Files}
+This is the terminal output of running the followin programs in a MIPS
+simulator.
+
+\subsection{\texttt{noisy/simple/sim04.c}}     \verbatiminput{sim04.txt}
+\subsection{\texttt{noisy/simple/sim06.c}}     \verbatiminput{sim06.txt}
+\subsection{\texttt{noisy/simple/sim07.c}}     \verbatiminput{sim07.txt}
+\subsection{\texttt{noisy/simple/sim10.c}}     \verbatiminput{sim10.txt}
+\subsection{\texttt{noisy/medium/fac.c}}       \verbatiminput{fac.txt}
+\subsection{\texttt{noisy/medium/fib.c}}       \verbatiminput{fib.txt}
+\subsection{\texttt{noisy/advanced/8queens.c}} \verbatiminput{8queens.txt}
+\subsection{\texttt{noisy/advanced/quick.c}}   \verbatiminput{quick.txt}
 
 \end{document}

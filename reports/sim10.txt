@@ -1,0 +1,5 @@
+Your name? Pelle
+Your age 123
+You are: Pelle
+
+You are: 123
